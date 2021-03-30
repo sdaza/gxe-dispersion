@@ -1,24 +1,30 @@
+/* this do file reflects the data cleaning and anlaysis as of March 22, 2021 */
 clear all
 set maxvar 32767
 
 
-global data /Users/yiyuehuangfu/Documents/HRS
-global pgse /Users/yiyuehuangfu/Documents/HRS/PGENSCORE3/PGENSCORE3E_R
-global pgsa /Users/yiyuehuangfu/Documents/HRS/PGENSCORE3/PGENSCORE3A_R
-global results /Users/yiyuehuangfu/Desktop/PGS_early condition/log
+global data /Users/yiyuehuangfu/Desktop/HRS PGS/data
+global log /Users/yiyuehuangfu/Desktop/HRS PGS/log
+/* please modify the file path for the global "data" to reflect the the position of replication
+ package on your devide */ 
+
+/* raw data used to construct the analytic sample:
+  - RAND longitudinal HRS, 
+  - Polygenic Score file for European and African ancestry, 
+  - Global Aging Gateway Harmonized HRS */ 
 
 /************1. prepare data for the analysis ************************************/
-use "$data/randhrs1992_2016v2_STATA/randhrs1992_2016v2",clear
+use "$data/randhrs1992_2016v2",clear
    rename hhid HHID 
    rename pn PN 
  
- merge 1:1 HHID PN using "$pgse"  // merge with PGS of European ancestry 
+ merge 1:1 HHID PN using "$data/PGENSCORE3E_R"  // merge with PGS of European ancestry 
    drop _merge 
   
- merge 1:1 HHID PN using "$pgsa", update  // merge with PGS of African ancestry 
+ merge 1:1 HHID PN using "$data/PGENSCORE3A_R", update  // merge with PGS of African ancestry 
    drop _merge
    
- merge 1:1 HHID PN using "$data/trk2016/TRK2016TR_R"  // merge with the track file 
+ merge 1:1 HHID PN using "$data/TRK2016TR_R"  // merge with the track file 
    drop _merge
 
    tempfile randhrs
@@ -26,7 +32,7 @@ use "$data/randhrs1992_2016v2_STATA/randhrs1992_2016v2",clear
    
  use "$data/H_HRS_b",clear /*get father's occupation, financial condition while 
   growing up, and health condition during childhood from Gateway harmonized file */ 
-  keep hhid pn radadoccup rafinanch r*healthch 
+  keep hhid pn radadoccup rafinanch r*healthch  h*rural r*momeft r*momatt r*momgrela ralhchild 
    rename hhid HHID
    rename pn PN 
    merge 1:1 HHID PN using `randhrs'
@@ -40,7 +46,10 @@ use "$data/randhrs1992_2016v2_STATA/randhrs1992_2016v2",clear
 	sum bmi_giant15  // 15,190 respondents have BMI PGS 
 	tab RACE, sum(bmi_giant15) // 12,090 white, 3,100 black 
 	
+  g t2b_pgs = EA_PGS3_T2D_DIAGRAM12 
+   replace t2b_pgs = AA_PGS3_T2D_DIAGRAM12 if t2b_pgs==.
       
+	     label var bmi_giant15 "BMI PGS" 
  /*construct childhood condition indicator with  mother's education, father's education
   childhood health, father's occupation when 16, and financial condition while growing up */ 
   
@@ -57,22 +66,46 @@ recode radadoccup (1=2) (2 3=1), gen(fatherocc2)
  recode raeduc (1 =1) (2 3=2) (4 5=3)
   label define edu 1"less than HS" 2"HS" 3">HS" 
   label values raeduc edu 
-   
+     
 g ec =rafeduc+rameduc+healthch_recode+rafinanch+ fatherocc2 
+ label var ec "early life condition" 
  xtile ec_q = ec, n(3)
  tab ec_q, sum(ec)
- 
+   label var ec_q "early life condition tertiles" 
+   
  label define ec 1"worst" 2"median" 3"best" 
    label values ec_q ec 
+  
+   
+   /* construct a differnt childhood condition indicator with childhood health, financial 
+  condition while growing up, mother's effort, mother's attention, good relationship with mother, 
+  parental warmth   */ 
+ recode r*momeft (1=4) (2=3) (3=2) (4=1)
+  egen momeft = rowmax(r9momeft r10momeft r11momeft)
+  
+ recode r*momatt (1=4) (2=3) (3=2) (4=1)
+  egen momatt = rowmax(r*momatt)
+  
+ egen momgrela = rowmax(r*momgrela)
+ 
+ recode ralhchild (0=3) (1=2) (2=1) (3=0), gen(ralhchild_recode)
+ 
+   mvpatterns rafinanch_recode momeft momatt momgrela ralhchild healthch_recode rafeduc rameduc 
+
+   g ecalt = rafinanch_recode+momeft+momatt+momgrela+healthch_recode
+     xtile ecalt_q = ecalt,n(3)
+	  tab ecalt_q, sum(ecalt) 
    
   /* cohort dummies  */
 g cohort = 1 if BIRTHYR >=1910 & BIRTHYR <= 1924 
 replace cohort = 2 if BIRTHYR >= 1925 & BIRTHYR <= 1934
  replace cohort = 3 if BIRTHYR >=1935 & BIRTHYR <=1944
- replace cohort = 4 if BIRTHYR >1945 & BIRTHYR <.
+ replace cohort = 4 if BIRTHYR >1945 & BIRTHYR <1960
  
  label define cohort 1"before 1924" 2 "1925-1934" 3"1935-1944" 4"1945-1960",modify 
    label values cohort cohort 
+ 
+   
    
    /* average BMI, both measured and self-reported */ 
   egen srbmi = rowmean(r1bmi-r13bmi)
@@ -83,7 +116,10 @@ replace cohort = 2 if BIRTHYR >= 1925 & BIRTHYR <= 1934
 
    /*** in order to run the multi level modeling, the data need to be shaped in long
  format */ 
- keep  r*bmi bmi_giant15 ec_q cohort BIRTHYR RACE GENDER raeduc PC*_* HHID hhidpn  srbmi pmbmi r*pmhghts r*heart r*cancr r*shlt
+ keep  r*bmi t2b_pgs bmi_giant15  rabplace cohort  r*diab BIRTHYR ///
+   RACE GENDER raeduc PC*_* HHID hhidpn  srbmi pmbmi r*pmhghts r*heart h*rural ec* ///
+   r*cancr r*shlt r*cenreg r*cendiv *educ rafinanch* healthch* mom*  ralhchild*
+   
   drop if bmi_giant15 ==.
   
   rename r?bmi rbmi?
@@ -102,7 +138,15 @@ replace cohort = 2 if BIRTHYR >= 1925 & BIRTHYR <= 1934
   rename r?shlt rshlt?
   rename r??shlt rshlt??
   
-  reshape long rmbmi rbmi rpmhghts rheart rcancr rshlt, i(hhidpn) j(wave)
+  rename r?diab rdiab?
+  rename r??diab rdiab??
+  
+  rename r?cenreg rcenreg? 
+  rename r??cenreg rcenreg??
+  rename r*cendiv rcendiv* 
+  rename h*rural hrural* 
+  
+  reshape long rmbmi rbmi rpmhghts rheart rcancr rshlt rdiab rcenreg rcendiv hrural, i(hhidpn) j(wave)
    label var rmbmi "measured BMI" 
    label var rbmi "self-reported BMI" 
    
@@ -112,19 +156,42 @@ replace cohort = 2 if BIRTHYR >= 1925 & BIRTHYR <= 1934
    g age_mc = age -66
    g age_mc2 = age_mc * age_mc
     
-  
-  
   drop if rbmi ==. | rbmi==.s | rbmi==.n | rbmi==.m | rbmi==.i | rbmi==.d | rbmi==.x
 
   bys hhidpn: g n=_n
+    label var n "nth interview" 
   bys hhidpn: g N=_N
+    label var N "total number of intervew an individual has" 
   
   tab N if n==1 
   
+  /* disease */ 
   recode rheart (0 4 5=0) (1 3 6=1)
+    label var rheart "report heart disease this wave" 
   recode rcancr (0 4 5 =0) (1 3 6=1)
+     label var rcancr "report cancer this wave" 
+  recode rdiab (0 4 5 =0) (1 3 =1) 
+    label var rdiab "report diabetes this wave" 
+	 
+	 bys hhidpn: egen heart = max(rheart) 
+bys hhidpn: egen cancer = max(rcancr) 
+bys hhidpn: egen srh = max(rshlt) 
+bys hhidpn: egen diab =max(rdiab)
+  label var heart "ever had heart disease"
+  label var cancer "ever had cancer" 
+  label var srh "worst self-rated health" 
+  label var diab "ever had diab" 
+  
+  /* obesity status */ 
+  mark obe if rbmi >=30 
+   bys hhidpn: egen obe_any = max(obe)
+  mark overweight if rbmi >=25 
+   bys hhidpn: egen ow_any = max(overweight) 
+   
+   //save "$data/working/sample03222021",replace
   
   /*************** descriptives **************************************************/
+  /* I ran some descriptives to look at the sample */ 
  sum N if RACE ==1 & BIRTHYR<=1960 & ec_q <.  & n==1
  sum rbmi if RACE ==1 & BIRTHYR<=1960 & ec_q <.
  sum rmbmi if RACE ==1 & BIRTHYR<=1960 & ec_q <.
@@ -149,11 +216,10 @@ replace cohort = 2 if BIRTHYR >= 1925 & BIRTHYR <= 1934
    
    sum N if RACE ==1 & BIRTHYR<=1960 & ec_q <.  
    sum N if RACE ==2 & BIRTHYR<=1960 & ec_q <.  
-   
-   label var bmi_giant15 "BMI PGS" 
+  
 
   /***************3. replicate Walter (2016) *************************************/
-  log using "$results/models_replicate.log", replace
+  //log using "$results/models_replicate.log", replace
 
  // Walter model 4 , white
   mixed rbmi ib1.cohort i.GENDER  ib1.cohort#i.GENDER ///
@@ -171,50 +237,52 @@ replace cohort = 2 if BIRTHYR >= 1925 & BIRTHYR <= 1934
    ||hhidpn: age_mc age_mc2 if wave <=12 & RACE ==2  & BIRTHYR <=1958 , mle 
   outreg2 using "$results/gcm_replicatewalter.xls", append dec(3) alpha(0.001, 0.01, 0.05)
   
-  log close 
+ // log close 
   
   
  
   /****** 4. models with self report BMI  **********************************************************/
-   log using "$results/models_sr.log", replace
+  // log using "$results/models_sr.log", replace
   /* average sr bmi */ 
- reg srbmi  bmi_giant15  ib1.cohort    age_mc age_mc2 i.ec_q  ///
-  ib1.cohort#c.bmi_giant15  ///
+ reg srbmi  bmi_giant15  ib1.cohort   age_mc age_mc2 i.ec_q  ///
+  ib1.cohort#c.bmi_giant15   ///
   i.raeduc i.GENDER PC*  ///
-   if n==1 & RACE ==1 & BIRTHYR <=1960  & ec_q <. ,vce(cluster HHID)
+   if n==1 & RACE ==1  ,vce(cluster HHID)
+   test [4.cohort#bmi_giant15] = [3.cohort#bmi_giant15]
      est sto OLS 
    outreg2 using "$results/ols_sr_01282021.xls", append dec(3) alpha(0.001, 0.01, 0.05)
    
-   
-   
- reg srbmi  bmi_giant15  ib1.cohort    age_mc age_mc2 i.ec_q  ///
+ 
+ reg srbmi  bmi_giant15  ib1.cohort     age_mc age_mc2 i.ec_q  ///
   ib1.cohort#c.bmi_giant15 ///
   i.raeduc i.GENDER PC* ///
    if n==1 & RACE ==2 & BIRTHYR <=1960  & ec_q <. ,vce(cluster HHID)
       outreg2 using "$results/ols_sr_01282021.xls", append dec(3) alpha(0.001, 0.01, 0.05)
 	  
    /* average sr bmi, EC X PGS */ 
- reg srbmi  bmi_giant15  ib1.cohort    age_mc age_mc2 i.ec_q  ///
-  ib1.ec_q#c.bmi_giant15 ///
+ reg srbmi  bmi_giant15  ib1.cohort  age_mc age_mc2  ec  ///
+  c.ec#c.bmi_giant15  ///
   i.raeduc i.GENDER PC* ///
-   if n==1 & RACE ==1 & BIRTHYR <=1960  & ec_q <. ,vce(cluster HHID)
+   if n==1 & RACE ==1 & BIRTHYR <=1960  ,vce(cluster HHID)
       outreg2 using "$results/ols_sr_01282021.xls", append dec(3) alpha(0.001, 0.01, 0.05)
 	
 	  
- reg srbmi  bmi_giant15  ib1.cohort    age_mc age_mc2 i.ec_q  ///
-  ib1.ec_q#c.bmi_giant15 ///
+ reg srbmi  bmi_giant15  ib1.cohort    age_mc age_mc2 i.ec2_q  ///
+  ib1.ec2_q#c.bmi_giant15 ///
   i.raeduc i.GENDER PC* ///
-   if n==1 & RACE ==2 & BIRTHYR <=1960  & ec_q <. ,vce(cluster HHID)
+   if n==1 & RACE ==2 & BIRTHYR <=1960  ,vce(cluster HHID)
       outreg2 using "$results/ols_sr_01282021.xls", append dec(3) alpha(0.001, 0.01, 0.05)
-	  
-  
+
+		
   /****************************************************/
  // Walter model 4 +controls , white 
   mixed rbmi  bmi_giant15 ib1.cohort age_mc   age_mc2 i.ec_q  ///
    ib1.cohort#c.bmi_giant15    ib1.cohort#c.age_mc ib1.cohort#c.age_mc2 ///
  c.bmi_giant15#c.age_mc  ///
-     i.raeduc  i.GENDER   i.GENDER#c.age_mc i.cohort#i.GENDER i.rheart i.rcancr rshlt  PC* ///
+     i.raeduc  i.GENDER   i.GENDER#c.age_mc i.cohort#i.GENDER   PC* ///
    ||hhidpn: age_mc age_mc2 if RACE ==1 & BIRTHYR <=1960 & ec_q <. , mle 
+   test [4.cohort#bmi_giant15] = [3.cohort#bmi_giant15]
+   
   est sto GC_SR
   
   coefplot OLS GC, keep(*bmi_giant15)  drop(bmi_giant15) label ///
@@ -223,28 +291,33 @@ replace cohort = 2 if BIRTHYR >= 1925 & BIRTHYR <= 1934
   margins , at( bmi_giant15 = (-3 -2 -1 0 1 2 3) cohort = (1 2 3 4) )
    marginsplot 
    
+   
+   margins , at( bmi_giant15 = (-3 -2 -1 0 1 2 3) rabplace = (1  3  5 6 ) )
+      marginsplot 
+   
   twoway qfit rbmi age if e(sample) & cohort ==1 || ///    
          qfit rbmi age if e(sample) &   cohort ==2 || ///
 		 qfit rbmi age if e(sample) &  cohort ==3 || ///
 		 qfit rbmi age if e(sample) &  cohort ==4 , legend(order(1 "before 1924" 2 "1925-1934" 3 "1935-1944" 4 "after 1945") )
+   	
+  //outreg2 using "$results/gcm_sr_01282021.xls", append dec(3)  alpha(0.001, 0.01, 0.05)
    
- 
-	
-  outreg2 using "$results/gcm_sr_01282021.xls", append dec(3)  alpha(0.001, 0.01, 0.05)
+
+
  
 // Walter model 4 + controls, black
   mixed rbmi  bmi_giant15 ib1.cohort age_mc   age_mc2 i.ec_q  ///
    ib1.cohort#c.bmi_giant15    ib1.cohort#c.age_mc ib1.cohort#c.age_mc2 ///
  c.bmi_giant15#c.age_mc ///
-     i.raeduc  i.GENDER  ib1.cohort#i.GENDER  i.GENDER#c.age_mc i.rheart i.rcancr rshlt  PC* ///
-   ||hhidpn: age_mc age_mc2 if RACE ==2 & BIRTHYR <=1960  & ec_q <. , mle 
+     i.raeduc  i.GENDER  ib1.cohort#i.GENDER  i.GENDER#c.age_mc  PC* ///
+   ||hhidpn: age_mc age_mc2 if RACE ==2 & BIRTHYR <=1960   , mle 
    outreg2 using "$results/gcm_sr_01282021.xls", append dec(3) alpha(0.001, 0.01, 0.05)
 	
 
 	
   /****************************************************/
   // Walter model 4 + control + EC X PGS, white 
-mixed rbmi  bmi_giant15 ib1.cohort age_mc   age_mc2 i.ec_q  ///
+mixed rbmi  bmi_giant15 ib1.cohort age_mc  age_mc2 i.ec2_q  ///
    ib1.ec_q#c.bmi_giant15    ib1.ec_q#c.age_mc ib1.ec_q#c.age_mc2 ///
  c.bmi_giant15#c.age_mc ///
      i.raeduc  i.GENDER  ib1.cohort#i.GENDER  i.GENDER#c.age_mc i.rheart i.rcancr rshlt  PC* ///
@@ -260,7 +333,7 @@ mixed rbmi  bmi_giant15 ib1.cohort age_mc   age_mc2 i.ec_q  ///
    ||hhidpn: age_mc age_mc2 if RACE ==2 & BIRTHYR <=1960  & ec_q <. , mle  
    outreg2 using "$results/gcm_sr_01282021.xls", append dec(3) alpha(0.001, 0.01, 0.05)
 	
-log close
+//log close
   /****************************************************/
   
    
@@ -271,14 +344,15 @@ log close
     mixed rbmi  bmi_giant15 ib1.cohort age_mc   age_mc2 i.ec_q  ///
    ib1.cohort#c.bmi_giant15    ib1.cohort#c.age_mc ib1.cohort#c.age_mc2 ///
  c.bmi_giant15#c.age_mc  ///
-     i.raeduc  i.GENDER   i.GENDER#c.age_mc i.cohort#i.GENDER i.rheart i.rcancr rshlt  PC* ///
+     i.raeduc  i.GENDER   i.GENDER#c.age_mc i.cohort#i.GENDER   PC* ///
    ||hhidpn: age_mc age_mc2 if RACE ==1 & BIRTHYR <=1960 & ec_q <. , mle 
    
    
    // model predicted BMI 
-   predict pdct_bmi if e(sample)
+   predict pdct_bmi if e(sample) & cohort ==4 
     label var pdct_bmi "model predicted BMI" 
    
+   drop cohort2 
 	 tab cohort, gen(cohort)
    tab ec_q, gen(ec_q)
    tab raeduc, gen(raeduc)
@@ -318,25 +392,27 @@ log close
    26.43285  if cohort ==4 & e(sample) ==1 
    
    label var cf2_bmi "if cohort4 has the coefficient on PGS as 1935-1944" 
-  
-
-	sort age RACE 
-      bys age RACE : egen cf1_bmimean = mean(cf1_bmi) if e(sample)==1 & cohort4==1
-   bys age RACE : egen cf2_bmimean = mean(cf2_bmi) if e(sample)==1 & cohort4==1
-      bys age RACE : egen pdct_bmimean = mean(pdct_bmi) if e(sample)==1 & cohort4==1
+	
 
    label define gender 1"male" 2"female" ,modify
     label values GENDER  gender
    
-   twoway line pdct_bmimean age if RACE==1 & cohort ==4 & e(sample)==1 & age>=50 || ///
-          line cf1_bmimean age if RACE ==1 & cohort ==4 & e(sample)==1 & age>=50 || ///
-		  line cf2_bmimean age if RACE ==1 & cohort ==4 & e(sample)==1 & age>=50 , ///
-		   title("Cohort 1945-1960, white") ///
-		  legend(order(1 "model predicted BMI" 2 "BMI if born 1935-1944"  ///
-		  3 "BMI if the impact of PGS as cohort 1935-1944")) 
-		 
-		twoway line pdct_bmimean age if RACE==1 & cohort ==4 & e(sample)==1 & age>=50   
+    recode cf1_bmi (min/25 = 0) (25/max =1), gen(cf1_ow) 
+	recode cf1_bmi (min/30=0) (30/max=1), gen(cf1_obe)
+	recode cf2_bmi (min/25=0) (25/max=1), gen(cf2_ow)
+	recode cf2_bmi (min/30=0) (30/max=1), gen(cf2_obe)
+	recode pdct_bmi (min/25=0) (25/max=1), gen(pdct_ow)
+	recode pdct_bmi (min/30=0) (30/max=1), gen(pdct_obe)
 		  
+		  
+		 tab GENDER cf1_ow if RACE==1 & cohort ==4,row
+		 tab GENDER cf2_ow if RACE==1 & cohort==4, row
+		 tab GENDER pdct_ow if RACE ==1 & cohort==4, row
+		 
+		 tab GENDER cf1_obe if RACE==1 & cohort ==4,row
+		 tab GENDER cf2_obe  if RACE==1 & cohort==4, row
+		 tab GENDER pdct_obe if RACE ==1 & cohort==4, row
+
   
    // if cohort 4 were born in cohort 1
   g cf3_bmi = _b[bmi_giant15]*bmi_giant15 + ///
@@ -372,22 +448,7 @@ log close
    
    label var cf4_bmi "if cohort4 has the coefficient on PGS as 1900-1924" 
   
-  
-	sort age RACE GENDER
-      bys age RACE GENDER: egen cf3_bmimean = mean(cf3_bmi) if e(sample)==1 & cohort4==1
-   bys age RACE GENDER: egen cf4_bmimean = mean(cf4_bmi) if e(sample)==1 & cohort4==1
-
-
-   
-   twoway line pdct_bmimean age if RACE==1 & cohort ==4 & e(sample)==1 & age>=50 || ///
-          line cf3_bmimean age if RACE ==1 & cohort ==4 & e(sample)==1 & age>=50 || ///
-		  line cf4_bmimean age if RACE ==1 & cohort ==4 & e(sample)==1 & age>=50 , ///
-		  by(GENDER, title("Counterfactual of cohort 1945-1960, white") ) ///
-		  legend(order(1 "model predicted BMI" 2 "BMI if born 1900-1924"  ///
-		  3 "BMI if the impact of PGS as cohort 1900-1924")) 
-		 
-		twoway line pdct_bmimean age if RACE==1 & cohort ==4 & e(sample)==1 & age>=50
-   
+     
 /* 4.2 extrapolation *********************************************/
   // assuming the main effect for cohort 5 is 4.54, the interaction effect is .55
 	 
@@ -535,3 +596,38 @@ mixed rmbmi  bmi_giant15 ib1.cohort age_mc   age_mc2 i.ec_q  ///
    outreg2 using "$results/gcm_pm_01282021.xls", append dec(3) alpha(0.001, 0.01, 0.05)
 	
 log close
+
+
+/*************** depression cohort *********************************************/
+
+mixed rbmi  bmi_giant15 i.cohort2 age_mc   age_mc2  ///
+   i.cohort2#c.bmi_giant15    i.cohort2#c.age_mc i.cohort2#c.age_mc2 ///
+ c.bmi_giant15#c.age_mc  ///
+     i.raeduc  i.GENDER   i.GENDER#c.age_mc i.cohort2#i.GENDER  PC* ///
+   ||hhidpn: age_mc age_mc2 if RACE ==1 & BIRTHYR <=1960 & ec_q <. , mle 
+   
+bys hhidpn: egen diab = max(rdiab)
+
+ 
+reg diab t2b_pgs i.cohort2  ///
+   i.cohort2#c.t2b_pgs    i.raeduc  i.GENDER   i.cohort2#i.GENDER  PC* if n ==1 & RACE==1 
+   
+reg diab t2b_pgs i.cohort2 BIRTHYR   ///
+   i.cohort2#c.t2b_pgs    i.raeduc  i.GENDER   i.cohort2#i.GENDER  PC* if n ==1 & RACE==2 
+  
+/************* instrumental variables ? *******/ 
+// first stage 
+oprobit ec_q i.rabplace i.rcendiv bmi_giant15  ib1.cohort  age_mc age_mc2 i.heart i.cancer i.srh   ///
+  i.raeduc i.GENDER PC* ///
+   if n==1 & RACE ==1 & BIRTHYR <=1960  
+
+   predict ec_q1p ec_q2p ec_q3p 
+   
+   tab ec_q, gen(ec_q)
+
+ivregress 2sls srbmi  bmi_giant15    ib1.ec_q#c.bmi_giant15  /// 
+ib1.cohort  age_mc age_mc2 i.heart i.cancer i.srh  ///
+i.raeduc i.GENDER PC* (ec_q2 ec_q3 =ec_q2p ec_q3p) ///
+   if n==1 & RACE ==1 & BIRTHYR <=1960  & ec_q <. ,vce(cluster HHID)
+   
+   
