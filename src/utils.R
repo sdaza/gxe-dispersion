@@ -2,84 +2,29 @@
 # author: sebastian daza
 
 
-# extend extract brmsfit function to brm_muttiple
-extract.brmsfit <- function (model,
-                             use.HDI = TRUE,
-                             level = 0.9,
-                             include.random = TRUE,
-                             include.rsquared = TRUE,
-                             include.nobs = TRUE,
-                             include.loo.ic = TRUE,
-                             reloo = FALSE,
-                             include.waic = TRUE,
-                             ...) {
-  sf <- summary(model, ...)$fixed
-  coefnames <- rownames(sf)
-  coefs <- sf[, 1]
-  se <- sf[, 2]
-  if (isTRUE(use.HDI)) {
-    hdis <- coda::HPDinterval(brms::as.mcmc(model, combine_chains = TRUE),
-                              prob = level)
-    hdis <- hdis[seq(1:length(coefnames)), ]
-    ci.low = hdis[, "lower"]
-    ci.up = hdis[, "upper"]
-  } else { # default using 95% posterior quantiles from summary.brmsfit
-    ci.low = sf[, 3]
-    ci.up = sf[, 4]
-  }
-
-  gof <- numeric()
-  gof.names <- character()
-  gof.decimal <- logical()
-  if (isTRUE(include.random) & isFALSE(!nrow(model$ranef))) {
-    sr <- summary(model, ...)$random
-    sd.names <- character()
-    sd.values <- numeric()
-    for (i in 1:length(sr)) {
-      sd <- sr[[i]][, 1]
-      sd.names <- c(sd.names, paste0("SD: ", names(sr)[[i]], names(sd)))
-      sd.values <- c(sd.values, sd)
-    }
-    gof <- c(gof, sd.values)
-    gof.names <- c(gof.names, sd.names)
-    gof.decimal <- c(gof.decimal, rep(TRUE, length(sd.values)))
-  }
-  if (isTRUE(include.rsquared)) {
-    rs <- brms::bayes_R2(model)[1]
-    gof <- c(gof, rs)
-    gof.names <- c(gof.names, "R$^2$")
-    gof.decimal <- c(gof.decimal, TRUE)
-  }
-  if (isTRUE(include.nobs)) {
-    n <- stats::nobs(model)
-    gof <- c(gof, n)
-    gof.names <- c(gof.names, "Num. obs.")
-    gof.decimal <- c(gof.decimal, FALSE)
-  }
-  if (isTRUE(include.loo.ic)) {
-    looic <- brms::loo(model, reloo = reloo)$estimates["looic", "Estimate"]
-    gof <- c(gof, looic)
-    gof.names <- c(gof.names, "loo IC")
-    gof.decimal <- c(gof.decimal, TRUE)
-  }
-  if (isTRUE(include.waic)) {
-    waic <- brms::waic(model)$estimates["waic", "Estimate"]
-    gof <- c(gof, waic)
-    gof.names <- c(gof.names, "WAIC")
-    gof.decimal <- c(gof.decimal, TRUE)
-  }
-
-  tr <- createTexreg(coef.names = coefnames,
-                     coef = coefs,
-                     se = se,
-                     ci.low = ci.low,
-                     ci.up = ci.up,
-                     gof.names = gof.names,
-                     gof = gof,
-                     gof.decimal = gof.decimal)
-  return(tr)
+plot_multi_histogram <- function(df, feature, label_column) {
+    plt <- ggplot(df, aes(x=eval(parse(text=feature)), fill=eval(parse(text = label_column)))) +
+    geom_histogram(alpha=0.7, position="identity", aes(y = ..density..), color="black") +
+    geom_density(alpha=0.7) +
+    geom_vline(aes(xintercept=mean(eval(parse(text=feature)))), color="black", 
+        linetype="dashed", size=1) +
+    labs(x=feature, y = "Density")
+    plt + guides(fill=guide_legend(title=label_column))
 }
 
-setMethod("extract",
-          signature = className("brmsfit_multiple", "brms"),
-          definition = extract.brmsfit)
+
+# decomposition function scaliing vs  interaction model 
+decompR = function(model ,p0 = "g", p1 = "g:e", l0 = "sigma_intercept",
+      l1 = "sigma_e") {
+
+    par = list("p0" = p0, "p1" =  p1, "l0" = l0, "l1" =  l1)
+    par = lapply(par, function(x) tolower(paste0("b_", x)))
+    s = posterior_samples(model)
+    names(s) = tolower(names(s))
+    sl0 = s[[par$l0]]
+    sl1 = s[[par$l1]]
+    sp0 = s[[par$p0]]
+    sp1 = s[[par$p1]]
+    v =  ( (sl0*sp1 - sl1*sp0)/sl0 ) / sp1
+    v
+}
