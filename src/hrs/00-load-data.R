@@ -1,7 +1,5 @@
-#################################
-# explore HRS data
+# explore HRS gxe analysis
 # author: sebastian daza
-#################################
 
 
 library(haven)

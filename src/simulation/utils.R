@@ -2,9 +2,9 @@
 # author: sebastian daza
 
 
-# simulation funcctions
+# simulation functions
 # scaling model 
-simScaling = function(E, a0 = 0, a1 = 0.5, b0 = 0.8, b1 = 0.2, h2 = 0.5) {
+simScaling = function(E, a0 = 0, a1 = 0.5, b0 = 0.8, b1 = 0.2, h2 = 0.4) {
     N = length(E)
     G = rnorm(N,0,1)
     h = sqrt(h2)
@@ -15,7 +15,7 @@ simScaling = function(E, a0 = 0, a1 = 0.5, b0 = 0.8, b1 = 0.2, h2 = 0.5) {
 }
 
 # interaction model
-simInteraction = function(E, a0 = 0.0, a1 = 0.5, a2 = 0.8, a3 = 0.5, bs0 = 0.4, bs1 = 0.15) {
+simInteraction = function(E, a0 = 0.0, a1 = 0.8, a2 = 0.5, a3 = 0.3, bs0 = 0.4, bs1 = 0.24) {
     N = length(E)
     G = rnorm(N,0,1)
     sigma = exp(bs0 + bs1 * E) 
@@ -155,3 +155,6 @@ savepdf = function(file, width = 16, height = 10, mgp = c(2.2,0.45,0),
         pointsize = 10)
     par(mgp = mgp, tcl = tcl, mar = mar)
 }
+
+
+specify_decimal = function(x, k) trimws(format(round(x, k), nsmall=k))
