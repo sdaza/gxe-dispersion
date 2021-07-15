@@ -11,7 +11,7 @@ library(patchwork)
 library(latex2exp)
 library(foreach)
 library(doParallel)
-source("src/simulation/utils.R")
+source("src/utils.R")
 
 set.seed(124907)
 

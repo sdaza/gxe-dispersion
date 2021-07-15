@@ -158,3 +158,25 @@ savepdf = function(file, width = 16, height = 10, mgp = c(2.2,0.45,0),
 
 
 specify_decimal = function(x, k) trimws(format(round(x, k), nsmall=k))
+
+
+countmis = function(dat, vars = NULL, pct = TRUE, exclude.complete = TRUE) {
+
+    if (is.null(vars)) {
+        vars = names(dat)
+    }
+
+    mis = sort(sapply(dat[, vars, with = FALSE],
+        function(x) sum(is.na(x))), decreasing = TRUE)
+
+    if (exclude.complete == TRUE) {
+         mis = mis[mis > 0]
+    }
+
+    if (pct == FALSE)
+        { return(mis) }
+    else if ( pct == TRUE ) {
+        return( round(mis / nrow(dat), 3))
+    }
+    return(mis)
+}

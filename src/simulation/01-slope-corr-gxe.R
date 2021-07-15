@@ -7,7 +7,7 @@ library(brms)
 library(texreg)
 library(ggplot2)
 library(patchwork)
-source("src/simulation/utils.R")
+source("src/utils.R")
 
 # create data
 E = rnorm(10000, 0, 1)
