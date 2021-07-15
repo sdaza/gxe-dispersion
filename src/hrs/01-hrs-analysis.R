@@ -39,7 +39,7 @@ for (i in 1:10) {
         geom_smooth(method = "lm", color = "red", alpha = 0.2, size = 0.3) + 
         labs(title = paste0("Cohort ", i), 
             subtitle = paste0("Correlation: ", corr, "; Slope: ", slope), 
-            x = "BMI polygenic score", y "Self-reported BMI") +
+            x = "BMI polygenic score", y = "Self-reported BMI") +
         theme_minimal()
 }
 
@@ -53,27 +53,36 @@ file.copy("output/plots/hrs-slope-cor-gxe.pdf",
 
 m1 = lm(srbmi ~ gender + bmi_pgs, data = dat)
 summary(m1)
-# m2 = lm(srbmi ~ gender + bmi_pgs * zyear, data = dat)
-
 f = bf(srbmi ~ gender + bmi_pgs)
 
-f = bf(srbmi ~ gender + age + bmi_pgs * zyear, sigma ~ zyear)
+f = bf(srbmi ~ bmi_pgs * zyear, sigma ~ zyear)
 m1 = brm(f, data = dat, backend = "cmdstanr", cores = 4)
+summary(m1)
+
+1.22/1.66
+0.24/0.17
 
 f = bf(srbmi ~ gender + age + bmi_pgs * zyear +
-     pc1_5a + pc1_5b + pc1_5c + pc1_5d +  pc1_5e + 
-     pc6_10a + pc6_10b + pc6_10c + pc6_10d +  pc6_10e, sigma ~ zyear)
-m1 = brm(f, data = dat, backend = "cmdstanr", cores = 4)
+     pc1_5a + pc1_5b + pc1_5c + pc1_5d + pc1_5e + 
+     pc6_10a + pc6_10b + pc6_10c + pc6_10d + pc6_10e, 
+     sigma ~ zyear)
+m2 = brm(f, data = dat, backend = "cmdstanr", cores = 4)
 summary(m2)
 
-f = bf(srbmi ~ gender + bmi_pgs + (1 + bmi_pgs|birthyr), sigma ~ birthyr)
-m3 = brm(srbmi ~ gender + bmi_pgs + (1 + bmi_pgs|birthyr), data = dat, 
+f = bf(srbmi ~ gender + age + bmi_pgs + 
+     pc1_5a + pc1_5b + pc1_5c + pc1_5d + pc1_5e + 
+     pc6_10a + pc6_10b + pc6_10c + pc6_10d + pc6_10e + 
+     (1 + bmi_pgs|birthyr), 
+     sigma ~ birthyr)
+m3 = brm(f, data = dat, 
     backend = "cmdstanr", cores = 4)
 
 summary(m3)
-screenreg(list(m1, m2))
+
+screenreg(list(m1, m2, m3))
 str(dat)
 dim(dat)
+
 
 
 s = data.table(spread_draws(m3, r_birthyr[bmi_pgs,term], b_bmi_pgs))
