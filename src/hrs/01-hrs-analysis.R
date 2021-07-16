@@ -25,6 +25,7 @@ dat[, zyear := scale(birthyr)]
 dat = dat[birthyr >= 1920 & birthyr <= 1960]
 dat[, qbyr := cut(birthyr , quantile(birthyr, probs = 0:10/10),
         labels = FALSE, include.lowest = TRUE)]
+dat[, cbirthyr := scale(birthyr, scale = FALSE)]
 
 names(dat)
 dim(dat)
@@ -59,8 +60,6 @@ f = bf(srbmi ~ bmi_pgs * zyear, sigma ~ zyear)
 m1 = brm(f, data = dat, backend = "cmdstanr", cores = 4)
 summary(m1)
 
-1.22/1.66
-0.24/0.17
 
 f = bf(srbmi ~ gender + age + bmi_pgs * zyear +
      pc1_5a + pc1_5b + pc1_5c + pc1_5d + pc1_5e + 
@@ -73,31 +72,53 @@ f = bf(srbmi ~ gender + age + bmi_pgs +
      pc1_5a + pc1_5b + pc1_5c + pc1_5d + pc1_5e + 
      pc6_10a + pc6_10b + pc6_10c + pc6_10d + pc6_10e + 
      (1 + bmi_pgs|birthyr), 
-     sigma ~ birthyr)
+     sigma ~ (1|birthyr))
 m3 = brm(f, data = dat, 
     backend = "cmdstanr", cores = 4)
-
 summary(m3)
 
+f = bf(srbmi ~ gender + age + bmi_pgs + 
+     pc1_5a + pc1_5b + pc1_5c + pc1_5d + pc1_5e + 
+     pc6_10a + pc6_10b + pc6_10c + pc6_10d + pc6_10e + 
+     (1 + bmi_pgs|birthyr))
+m4 = brm(f, data = dat, 
+    backend = "cmdstanr", cores = 4)
+summary(m4)
+
 screenreg(list(m1, m2, m3))
-str(dat)
-dim(dat)
 
-
-
-s = data.table(spread_draws(m3, r_birthyr[bmi_pgs,term], b_bmi_pgs))
+s = data.table(spread_draws(m4, r_birthyr[bmi_pgs,term], b_bmi_pgs))
 s = s[term == "bmi_pgs"]
 setnames(s, "bmi_pgs", "byear")
-
 s[, slope := r_birthyr + b_bmi_pgs]
 ss = s[, .(m = median(slope), 
     l = quantile(slope, probs = 0.025), 
     h = quantile(slope, probs = 0.975)), byear]
 
-savepdf("testing")
+savepdf("output/plots/hrs-slope")
 ggplot(ss, aes(byear, m)) + geom_line(color='#2b8cbe', size = 0.4) +
     geom_ribbon(aes(ymin = l, ymax = h), fill = '#a6bddb', alpha=0.2) + 
-    theme_minimal() + 
+    theme_minimal() +
+     
     labs(y = "BMI PGS slope", x = "Birth year")
 dev.off()
+file.copy("output/plots/hrs-slope.pdf", 
+    "manuscript/plots/", 
+    recursive = TRUE)    
+
+bayes_r2(dat$srbmi, ypred)
+brms::bayes_R2(m4)
+
+ypred = posterior_epred(m4)
+r2_m4 = bayes_r2_group(dat$srbmi, ypred, dat$birthyr)
+
+savepdf("output/plots/hrs-r2")
+ggplot(r2_m4, aes(group, m)) + geom_line(color='#2b8cbe', size = 0.4) +
+    geom_ribbon(aes(ymin = l, ymax = h), fill = '#a6bddb', alpha=0.2) + 
+    theme_minimal() + 
+    labs(y = "R2", x = "Birth year")
+dev.off()
+file.copy("output/plots/hrs-r2.pdf", 
+    "manuscript/plots/", 
+    recursive = TRUE)   
 

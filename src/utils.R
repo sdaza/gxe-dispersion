@@ -180,3 +180,29 @@ countmis = function(dat, vars = NULL, pct = TRUE, exclude.complete = TRUE) {
     }
     return(mis)
 }
+
+
+bayes_r2 = function(y, ypred) {
+    e = -1 * sweep(ypred, 2, y)
+    var_ypred = matrixStats::rowVars(ypred)
+    var_e = matrixStats::rowVars(e)
+    r2 = as.matrix(var_ypred / (var_ypred + var_e))
+    return(c("m" = median(r2), "l" = as.numeric(quantile(r2, probs = 0.025)), 
+        "h" = as.numeric(quantile(r2, probs = 0.975))))
+}
+
+bayes_r2_group = function(y, ypred, group) {
+    ugroup = sort(unique(group))
+    e = -1 * sweep(ypred, 2, y)
+
+    v = NULL
+    for (i in ugroup) {
+        f = which(group %in% i)
+        var_e = matrixStats::rowVars(e[, f])
+        var_ypred = matrixStats::rowVars(ypred[, f])
+        r2 = as.matrix(var_ypred / (var_ypred + var_e))
+        v = rbind(v, c("group" = i, "m" = median(r2), "l" = as.numeric(quantile(r2, probs = 0.025)), 
+            "h" = as.numeric(quantile(r2, probs = 0.975))))
+    }
+    return(data.table(v))
+}

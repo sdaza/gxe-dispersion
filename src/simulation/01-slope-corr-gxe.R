@@ -9,10 +9,9 @@ library(ggplot2)
 library(patchwork)
 source("src/utils.R")
 
+
 # create data
 E = rnorm(10000, 0, 1)
-nreplicates = 100
-
 simHC = function(E) {
     N = length(E)
     G = rnorm(N,0,1)
@@ -24,7 +23,50 @@ simHC = function(E) {
 test = data.table(simHC(E))
 test[, qE := cut(E, quantile(E, probs = 0:10/10),
         labels = FALSE, include.lowest = TRUE)]
-# ggplot(test, aes(g, y, color = as.factor(qE))) + geom_point()
+
+# model plots 
+f = bf(y ~ g + E + (1 + g|qE), sigma ~ (1|qE))
+m1 = brm(f, data = test, backend = "cmdstanr", cores = 4)
+
+s = data.table(spread_draws(m1, r_qE[g,term], b_g))
+s = s[term == "g"]
+s
+setnames(s, "g", "qE")
+s[, slope := r_qE + b_g]
+ss = s[, .(m = median(slope), 
+    l = quantile(slope, probs = 0.025), 
+    h = quantile(slope, probs = 0.975)), qE]
+
+savepdf("output/plots/bmi-mock-slope")
+ggplot(ss, aes(qE, m)) + geom_line(color='#2b8cbe', size = 0.4) +
+    geom_ribbon(aes(ymin = l, ymax = h), fill = '#a6bddb', alpha=0.2) + 
+    theme_minimal() + 
+    scale_x_continuous(breaks=seq(1,10,1)) + 
+    labs(y = "BMI slope", x = "E")
+dev.off()
+file.copy("output/plots/bmi-mock-slope.pdf", 
+    "manuscript/plots/", 
+    recursive = TRUE)    
+
+ypred = posterior_epred(m1)
+bayes_r2(test$y, ypred)
+brms::bayes_R2(m1)
+r2_m1 = bayes_r2_group(test$y, ypred, test$qE)
+
+r2_m1
+
+savepdf("output/plots/bmi-mock-r2")
+ggplot(r2_m1, aes(group, m)) + geom_line(color='#2b8cbe', size = 0.4) +
+    geom_ribbon(aes(ymin = l, ymax = h), fill = '#a6bddb', alpha=0.2) + 
+    theme_minimal() + 
+    scale_x_continuous(breaks=seq(1,10,1)) + 
+    labs(y = "R2", x = "E")
+dev.off()
+file.copy("output/plots/bmi-mock-r2.pdf", 
+    "manuscript/plots/", 
+    recursive = TRUE)   
+
+
 
 plots = list()
 for (i in 1:10) {
