@@ -96,6 +96,9 @@ scalingTest = function(model,
     return(h)
 }
 
+scalingTestC = function(p0, p1, l0, l1) {
+    return(p0 * l1 - p1 * l0)
+}
 
 plotScalingTest = function(test, file = NULL) {
     v = test$samples
@@ -206,3 +209,53 @@ bayes_r2_group = function(y, ypred, group) {
     }
     return(data.table(v))
 }
+
+
+extractBRMS = function(model, r2 = FALSE) {
+    ff = summary(model)$fixed
+    rf = try(summary(model)$random)
+    coefnames = rownames(ff)
+    coefs = ff[, 1]
+    se = ff[, 2]
+    ci.low = ff[, 3]
+    ci.up = ff[, 4]
+
+    if (!is.null(rf)) {
+        for (i in names(rf)) {
+            coefnames = c(coefnames, rownames(rf[[i]]))
+            coefs = c(coefs, rf[[i]][, 1])
+            se = c(se, rf[[i]][, 2])
+            ci.low = c(ci.low, rf[[i]][, 3])
+            ci.up = c(ci.up, rf[[i]][, 4])
+        }
+    }
+
+    gof = numeric()
+    gof.names = character()
+    gof.decimal = logical()
+
+    n = stats::nobs(model)
+    gof = c(gof, n)
+    gof.names = c(gof.names, "Num. obs.")
+    gof.decimal = c(gof.decimal, FALSE)
+
+
+    if (r2) {
+        rs = brms::bayes_R2(model)[1]
+        gof = c(gof, rs)
+        gof.names = c(gof.names, "R$^2$")
+        gof.decimal = c(gof.decimal, TRUE)
+    }
+
+    tr = texreg::createTexreg(
+        coef.names = coefnames,
+        coef = coefs,
+        se = se,
+        ci.low = ci.low,
+        ci.up = ci.up,
+        gof.names = gof.names,
+        gof = gof,
+        gof.decimal = gof.decimal)
+    return(tr)
+}
+

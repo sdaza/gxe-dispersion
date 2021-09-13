@@ -9,24 +9,29 @@ library(ggplot2)
 library(patchwork)
 source("src/utils.R")
 
-
+# interaction 0.2
+# 
 # create data
 E = rnorm(10000, 0, 1)
 simHC = function(E) {
     N = length(E)
     G = rnorm(N,0,1)
     sigma = exp(0.2 + 0.5 * E) 
-    y = rnorm(N, 0.2 + G * 0.5 + E * 0.4 + E * G * 0.2, sigma)
+    y = rnorm(N, 0.2 + G * 0.5 + E * 0.4 + E * G * 0.0, sigma)
     df = data.frame(E = E, y = y, g = G, ys = scale(y))
 }
+
+scalingTestC(0.5, 0.2, 0.2, 0.5)
 
 test = data.table(simHC(E))
 test[, qE := cut(E, quantile(E, probs = 0:10/10),
         labels = FALSE, include.lowest = TRUE)]
 
 # model plots 
-f = bf(y ~ g + E + (1 + g|qE), sigma ~ (1|qE))
+f =  bf(y ~ g + E + g * E, sigma ~ (1|E))
+# f = bf(y ~ g + E + (1 + g|qE), sigma ~ (1|qE))
 m1 = brm(f, data = test, backend = "cmdstanr", cores = 4)
+summary(m1)
 
 s = data.table(spread_draws(m1, r_qE[g,term], b_g))
 s = s[term == "g"]
@@ -66,8 +71,6 @@ file.copy("output/plots/bmi-mock-r2.pdf",
     "manuscript/plots/", 
     recursive = TRUE)   
 
-
-
 plots = list()
 for (i in 1:10) {
     slope = specify_decimal(coef(lm(y ~ g, data = test[qE == i]))[2], 2)
@@ -87,12 +90,14 @@ file.copy("output/plots/slope-cor-gxe.pdf",
     "manuscript/plots/", 
     recursive = TRUE)    
 
+# ohter models
 test[, ys := scale(y)]
 test[, gs := scale(g)]
 test[, Es := scale(E)]
 
 f = bf(y ~ g + E + g * E, sigma ~ E)
 m1 = brm(f, data = test, backend = "cmdstanr", cores = 4)
+scalingTest(m1)
 
 f = bf(ys ~ g + E + g * E, sigma ~ E)
 m2 = brm(f, data = test, backend = "cmdstanr", cores = 4)

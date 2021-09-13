@@ -108,9 +108,9 @@ suppressWarnings(
         include.nobs = TRUE,
         include.loo.ic = FALSE,
         include.waic = FALSE,
-        file = "output/tables/model-tables.tex")
+        file = "output/tables/sim-dist-model.tex")
 )
-file.copy("output/tables/model-tables.tex", "manuscript/tables", 
+file.copy("output/tables/sim-dist-model.tex", "manuscript/tables", 
     recursive = TRUE)
 
 # scaling test and pltos
