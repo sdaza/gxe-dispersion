@@ -373,7 +373,7 @@ f_closeFiles();]]></DestroyCode>
 				<Variable Class="Parameter">
 					<Id>1631606732805</Id>
 					<Name><![CDATA[p_betaUnobserved]]></Name>
-					<X>300</X><Y>740</Y>
+					<X>460</X><Y>840</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -421,8 +421,8 @@ f_closeFiles();]]></DestroyCode>
 				<Variable Class="Parameter">
 					<Id>1631606932887</Id>
 					<Name><![CDATA[p_betaEnvironmentUnobserved]]></Name>
-					<X>300</X><Y>820</Y>
-					<Label><X>10</X><Y>0</Y></Label>
+					<X>470</X><Y>860</Y>
+					<Label><X>10</X><Y>-5</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
@@ -445,7 +445,7 @@ f_closeFiles();]]></DestroyCode>
 				<Variable Class="Parameter">
 					<Id>1631607804975</Id>
 					<Name><![CDATA[p_betaGxEU]]></Name>
-					<X>300</X><Y>760</Y>
+					<X>470</X><Y>820</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -469,7 +469,7 @@ f_closeFiles();]]></DestroyCode>
 				<Variable Class="Parameter">
 					<Id>1631610981177</Id>
 					<Name><![CDATA[p_betaSpouseInfluence]]></Name>
-					<X>300</X><Y>840</Y>
+					<X>480</X><Y>700</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -493,7 +493,7 @@ f_closeFiles();]]></DestroyCode>
 				<Variable Class="Parameter">
 					<Id>1631622774382</Id>
 					<Name><![CDATA[p_betaGxS]]></Name>
-					<X>300</X><Y>860</Y>
+					<X>480</X><Y>680</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -507,6 +507,54 @@ f_closeFiles();]]></DestroyCode>
 						</DefaultValue>
 						<ParameterEditor>
 							<Id>1631622774380</Id>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1631650857295</Id>
+					<Name><![CDATA[p_betaHousehold]]></Name>
+					<X>300</X><Y>740</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[double]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA[0.10]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1631650857293</Id>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1631650861906</Id>
+					<Name><![CDATA[p_betaGxH]]></Name>
+					<X>300</X><Y>760</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[double]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA[0.10]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1631650861904</Id>
 							<EditorContolType>TEXT_BOX</EditorContolType>
 							<MinSliderValue><![CDATA[0]]></MinSliderValue>
 							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
@@ -575,7 +623,7 @@ f_closeFiles();]]></DestroyCode>
 						</RecurrenceCode>
 						<Condition><![CDATA[false]]></Condition>
 					</Properties>
-					<Action><![CDATA[if (time() >= 3)  {
+					<Action><![CDATA[if (time() >= 100)  {
 	f_writeParameters(); 
 	finishSimulation();
 }]]></Action>
@@ -607,18 +655,26 @@ f_closeFiles();]]></DestroyCode>
 		p != agent && 
 		((p_assortiveWeight * abs(p.p_environment - agent.p_environment) + 
 			(1.0 - p_assortiveWeight)  * abs(p.p_unobserved - agent.p_unobserved)) <= p_spouseThreshold)));
-*/			
-		agent.spouse.connectTo(randomWhere(people, p -> !p.spouse.isConnected() && 
-		p != agent && 
-		abs(p.p_environment - agent.p_environment) <= p_spouseThreshold));
+*/		
+		for (int i = 0; i < 10; i++) {
 			
+			agent.spouse.connectTo(randomWhere(people, p -> !p.spouse.isConnected() && 
+				p != agent && 
+			abs(p.p_environment - agent.p_environment) <= p_spouseThreshold));
+			if (agent.spouse.isConnected()) break;	
+		}
 	}
 }
 
 // random selection if criterion is not met
 if (!agent.spouse.isConnected()) {
 	agent.spouse.connectTo(randomWhere(people, p -> !p.spouse.isConnected() && p != agent));
-}]]></Body>
+}
+
+double household = normal(1, 0);
+if (agent.p_household == -99) agent.p_household = household;
+if (agent.spouse.getConnectedAgent().p_household == -99) agent.spouse.getConnectedAgent().p_household = household;
+]]></Body>
 				</Function>
 				<Function AccessType="default" StaticFunction="false">
 					<ReturnModificator>VOID</ReturnModificator>
@@ -641,7 +697,7 @@ if (f_textFileInclude("bmi", p_fileNames)) {
 
 	col = new String[]{"iteration", "replicate", "time", "id",  "spouse_id",
 		"bmi","bmi_spouse", "pgs", "pgs_spouse", "environment", "environment_spouse",
-		 "unobserved", "unobserved_spouse", "influenced"};
+		 "unobserved", "unobserved_spouse", "susceptability"};
 	col_fileColumns.put("bmi", col);
 
 }
@@ -728,7 +784,7 @@ try {
    	spouse.p_environment + s + 
    	agent.p_unobserved + s +
    	spouse.p_unobserved + s + 
-   	agent.p_influenced + "\n");
+   	agent.p_susceptability + "\n");
 	}
 catch (IOException e) {
 	e.printStackTrace();
@@ -843,7 +899,8 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore + p_betaEnvironm
 	normal(p_sigmaBMI, 0);
 */
 
-agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore + p_betaEnvironment * agent.p_environment +
+agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore + 
+	p_betaEnvironment * agent.p_environment +
 	p_betaGxE * agent.p_polygenicScore * agent.p_environment +
 	normal(p_sigmaBMI, 0);]]></Body>
 				</Function>
@@ -894,9 +951,6 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore + p_betaEnvironm
 					<Parameters>
 						<Parameter>
 							<Name><![CDATA[p_BMI]]></Name>
-							<Value Class="CodeValue">
-								<Code><![CDATA[normal(1, 0)]]></Code>
-							</Value>
 						</Parameter>
 						<Parameter>
 							<Name><![CDATA[p_polygenicScore]]></Name>
@@ -923,7 +977,13 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore + p_betaEnvironm
 							<Name><![CDATA[p_previousBMI]]></Name>
 						</Parameter>
 						<Parameter>
-							<Name><![CDATA[p_influenced]]></Name>
+							<Name><![CDATA[p_susceptability]]></Name>
+							<Value Class="CodeValue">
+								<Code><![CDATA[uniform(0.0, 1.0)]]></Code>
+							</Value>
+						</Parameter>
+						<Parameter>
+							<Name><![CDATA[p_household]]></Name>
 						</Parameter>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
@@ -1277,7 +1337,7 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore + p_betaEnvironm
 				<Variable Class="Parameter">
 					<Id>1631542476565</Id>
 					<Name><![CDATA[p_unobserved]]></Name>
-					<X>40</X><Y>780</Y>
+					<X>40</X><Y>840</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1321,19 +1381,43 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore + p_betaEnvironm
 				</Variable>
 				<Variable Class="Parameter">
 					<Id>1631634741870</Id>
-					<Name><![CDATA[p_influenced]]></Name>
-					<X>40</X><Y>800</Y>
+					<Name><![CDATA[p_susceptability]]></Name>
+					<X>40</X><Y>860</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
-						<Type><![CDATA[boolean]]></Type>
+						<Type><![CDATA[double]]></Type>
 						<UnitType><![CDATA[NONE]]></UnitType>
 						<SdArray>false</SdArray>
 						<ParameterEditor>
 							<Id>1631634741868</Id>
-							<EditorContolType>CHECK_BOX</EditorContolType>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1631650280599</Id>
+					<Name><![CDATA[p_household]]></Name>
+					<X>40</X><Y>780</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[double]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA[-99]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1631650280597</Id>
+							<EditorContolType>TEXT_BOX</EditorContolType>
 							<MinSliderValue><![CDATA[0]]></MinSliderValue>
 							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
 							<DelimeterType>NO_DELIMETER</DelimeterType>
@@ -1353,14 +1437,13 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore + p_betaEnvironm
 					<Properties Width="90" Height="30">
 						<EntryAction><![CDATA[Person s = spouse.getConnectedAgent();
 
-if (p_previousBMI == -99) {
-	if (randomTrue(0.5)) {
-		p_BMI = p_BMI + main.p_betaSpouseInfluence * s.p_BMI + main.p_betaGxS * s.p_BMI * p_polygenicScore;
-        s.p_previousBMI = s.p_BMI;
-        p_influenced = true;
-	}
+if (s.p_previousBMI == -99) s.p_previousBMI = s.p_BMI;
+if (p_previousBMI == -99) p_previousBMI = p_BMI;
 
-}
+p_BMI = p_BMI + p_susceptability * main.p_betaSpouseInfluence * s.p_previousBMI + 
+	p_susceptability * main.p_betaGxS * s.p_previousBMI * p_polygenicScore +
+	main.p_betaHousehold * p_household + 
+	main.p_betaGxH * p_polygenicScore * p_household;
 
 main.f_writeBMIData(this);]]></EntryAction>
 						<FillColor/>
@@ -1684,6 +1767,12 @@ main.f_defineBMI(this);]]></EntryAction>
 				<Parameter>
 					<ParameterName><![CDATA[p_betaGxS]]></ParameterName>
 				</Parameter>
+				<Parameter>
+					<ParameterName><![CDATA[p_betaHousehold]]></ParameterName>
+				</Parameter>
+				<Parameter>
+					<ParameterName><![CDATA[p_betaGxH]]></ParameterName>
+				</Parameter>
 			</Parameters>			
 			<PresentationProperties>
 				<EnableZoomAndPanning>true</EnableZoomAndPanning>
@@ -1827,6 +1916,12 @@ root.p_assortiveWeight = v_assortativeWeighting[currentIteration];]]></BeforeSim
 			<FreeformParamValue>	
 				<Id>1631622774382</Id>
 			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631650857295</Id>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631650861906</Id>
+			</FreeformParamValue>
 			<RangeVariationParamValue>	
 				<Id>1631525854973</Id>
 				<Type>FIXED</Type>
@@ -1885,6 +1980,14 @@ root.p_assortiveWeight = v_assortativeWeighting[currentIteration];]]></BeforeSim
 			</RangeVariationParamValue>
 			<RangeVariationParamValue>	
 				<Id>1631622774382</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631650857295</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631650861906</Id>
 				<Type>FIXED</Type>
 			</RangeVariationParamValue>
 			<ModelTimeProperties>
@@ -2039,9 +2142,21 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 			</FreeformParamValue>
 			<FreeformParamValue>	
 				<Id>1631610981177</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.30]]></Code>
+				</Expression>
 			</FreeformParamValue>
 			<FreeformParamValue>	
 				<Id>1631622774382</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.15]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631650857295</Id>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631650861906</Id>
 			</FreeformParamValue>
 			<RangeVariationParamValue>	
 				<Id>1631525854973</Id>
@@ -2101,6 +2216,14 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 			</RangeVariationParamValue>
 			<RangeVariationParamValue>	
 				<Id>1631622774382</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631650857295</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631650861906</Id>
 				<Type>FIXED</Type>
 			</RangeVariationParamValue>
 			<ModelTimeProperties>
