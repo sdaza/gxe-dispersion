@@ -8,9 +8,10 @@ library(brms)
 library(texreg)
 library(foreach)
 library(doParallel)
+source("src/utils.R")
 
 path = "models/BMI-spouses-GxE/output/"
-clusters = 3
+clusters = 5
 
 # remove files
 # files = paste0(path, list.files(path, pattern = "*.csv"))
@@ -21,6 +22,8 @@ dat = rbindlist(lapply(files, fread))
 
 files = paste0(path, list.files(path, pattern = "parameter"))
 params = rbindlist(lapply(files, fread))
+params = unique(params, by = c("iteration"))
+params
 
 # dat[, couple := paste0(sort(.SD), collapse = ""), 
     # .SDcols = c("id", "spouse_id"), 
@@ -32,82 +35,39 @@ table(dat$replicate)
 
 cor(dat$bmi, dat$bmi_spouse)
 cor(dat$pgs, dat$pgs_spouse)
-table(dat$susceptability)
+summary(dat$susceptability)
 
-cl = makeCluster(clusters)
-registerDoParallel(cl)
+estimateModel = function(dat, iter = NULL, clusters = 4) {
 
-output = foreach(i = 1:max(params$replicate),
+    cl = makeCluster(clusters)
+    registerDoParallel(cl)
+
+    output = foreach(i = 1:max(params$replicate),
         .packages = c("brms", "cmdstanr", "doParallel", 
-            "data.table", "rstan", "rethinking")) %dopar% {
+            "data.table")) %dopar% {
     
-    options(mc.cores = 1)
-    temp = copy(dat[iteration == 1 & replicate == i])
+    temp = copy(dat[iteration == iter & replicate == i])
     brm(bmi ~ pgs + bmi_spouse + pgs * bmi_spouse, 
-        data = temp, iter = 2000, chains = 1, backend = "cmdstan")
+        data = temp, iter = 2000, cores = 1, chains = 1, backend = "cmdstan")
+    }
+    stopCluster(cl)
+    baseline = combine_models(mlist = output, check_data = FALSE)
+    return(baseline)
 }
-stopCluster(cl)
 
-baseline = combine_models(mlist = output, check_data = FALSE)
+m1 = estimateModel(dat, iter = 1)
+m2 = estimateModel(dat, iter = 2)
+m3 = estimateModel(dat, iter = 3)
+m4 = estimateModel(dat, iter = 4)
 
-summary(baseline)
 params
 
-m2 = brm(bmi ~ pgs + bmi_spouse + pgs * bmi_spouse, 
-    data = dat, iter = 2000, chains = 1, backend = "cmdstan")
-summary(m2)
- 
-
-m0 = brm(bmi ~ pgs + environment + pgs * environment, 
-    data = dat, iter = 2000, chains = 1, backend = "cmdstan")
-summary(m0)
-
-m1 = brm(bmi ~ pgs + environment + pgs * environment + unobserved +
-    pgs * unobserved, 
-    data = dat, iter = 2000, chains = 1, backend = "cmdstan")
-summary(m1)
-
-m2 = brm(bmi ~ pgs + bmi_spouse + pgs * bmi_spouse, 
-    data = dat, iter = 2000, chains = 1, backend = "cmdstan")
-summary(m2)
- 
-
-screenreg(list(m0, m1))
-params
-
-# hist(dat$bmi)
-# hist(dat$bmi_spouse)
-# hist(dat$pgs)
-# hist(dat$pgs_spouse)
-
-models = list()
-for (i in 1:100) {
-    temp = dat[iteration == 1 & replicate == i]
-    models[[i]] =  brm(bmi ~ pgs + environment + pgs * environment, 
-    data = temp, iter = 2000, chains = 1, backend = "cmdstan")
-
-}
-m1 = combine_models(mlist = models, check_data = FALSE)
-summary(m1)
+screenreg(list(m1, m2, m3, m4),
+    custom.model.names = c("none", "total", "random", "alternate"), 
+    include.rsquared = FALSE,
+    include.loo.ic = FALSE)
 
 
-cor(dat$bmi, dat$bmi_spouse)
-cor(dat$pgs, dat$pgs_spouse)
-cor(dat$environment, dat$environment_spouse)
-
-
-dat[, couple := paste0(sort(.SD), collapse = ""), .SDcols = c("id", "spouse_id"), 
-    by = 1:nrow(dat)]
-setorder(dat, couple)
-dat
-
-m0 = brm(bmi ~ pgs + environment + pgs * environment, 
-    data = dat, iter = 2000, chains = 1)
-summary(m0)
-
-m1 = brm(bmi ~ pgs + bmi_spouse + pgs * bmi_spouse, 
-    data = dat, iter = 2000, chains = 1)
-summary(m1)
-
-
-
+dat[iteration == 1]
+dat[iteration == 2]
+dat[iteration == 3]

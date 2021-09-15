@@ -4,7 +4,7 @@
 	         AnyLogic Project File 
 *************************************************	         
 -->
-<AnyLogicWorkspace WorkspaceVersion="1.9" AnyLogicVersion="8.7.6.202107211757" AlpVersion="8.7.2">
+<AnyLogicWorkspace WorkspaceVersion="1.9" AnyLogicVersion="8.7.5.202106081839" AlpVersion="8.7.2">
 <Model>
 	<Id>1631520769006</Id>
 	<Name><![CDATA[BMI-spouses-GxE]]></Name>
@@ -251,30 +251,6 @@ f_closeFiles();]]></DestroyCode>
 					</Properties>                 
 				</Variable>
 				<Variable Class="Parameter">
-					<Id>1631547705324</Id>
-					<Name><![CDATA[p_assortiveWeight]]></Name>
-					<X>80</X><Y>720</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
-						<Type><![CDATA[double]]></Type>
-						<UnitType><![CDATA[NONE]]></UnitType>
-						<SdArray>false</SdArray>
-						<DefaultValue Class="CodeValue">
-							<Code><![CDATA[0.7]]></Code>
-						</DefaultValue>
-						<ParameterEditor>
-							<Id>1631547705322</Id>
-							<EditorContolType>TEXT_BOX</EditorContolType>
-							<MinSliderValue><![CDATA[0]]></MinSliderValue>
-							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
-							<DelimeterType>NO_DELIMETER</DelimeterType>
-						</ParameterEditor>
-					</Properties>                 
-				</Variable>
-				<Variable Class="Parameter">
 					<Id>1631606505744</Id>
 					<Name><![CDATA[p_numAgents]]></Name>
 					<X>70</X><Y>940</Y>
@@ -493,7 +469,7 @@ f_closeFiles();]]></DestroyCode>
 				<Variable Class="Parameter">
 					<Id>1631702298547</Id>
 					<Name><![CDATA[p_whichSusceptability]]></Name>
-					<X>80</X><Y>770</Y>
+					<X>80</X><Y>750</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -587,7 +563,7 @@ f_closeFiles();]]></DestroyCode>
 					<ReturnType><![CDATA[double]]></ReturnType>
 					<Id>1631522431209</Id>
 					<Name><![CDATA[f_selectSpouse]]></Name>
-					<X>80</X><Y>740</Y>
+					<X>80</X><Y>720</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -663,7 +639,8 @@ if (f_textFileInclude("bmi", p_fileNames)) {
 // parameters
 if (f_textFileInclude("parameters", p_fileNames)) {
 
-	col = new String[]{"iteration", "replicate", "agents", "mating_random", "spouse_threshold",
+	col = new String[]{"iteration", "replicate", "agents", "mating_random", "spouse_threshold", 
+		"susceptability",
 		"beta_pgs", "beta_e", "beta_gxe",
 		"beta_household", "beta_gxh",
 		 "beta_influence_spouse", "beta_gxs", "sigma_bmi"};
@@ -824,6 +801,7 @@ try {
     p_numAgents + s +
    	p_spouseSelectionRandom + s +
    	p_spouseThreshold + s +
+   	p_whichSusceptability + s +
     p_betaPolygenicScore + s +
     p_betaEnvironment + s +
     p_betaGxE + s +
@@ -868,7 +846,7 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 					<ReturnType><![CDATA[double]]></ReturnType>
 					<Id>1631702034376</Id>
 					<Name><![CDATA[f_defineSusceptability]]></Name>
-					<X>80</X><Y>790</Y>
+					<X>80</X><Y>770</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1689,9 +1667,6 @@ main.f_defineBMI(this);]]></EntryAction>
 					<ParameterName><![CDATA[p_spouseThreshold]]></ParameterName>
 				</Parameter>
 				<Parameter>
-					<ParameterName><![CDATA[p_assortiveWeight]]></ParameterName>
-				</Parameter>
-				<Parameter>
 					<ParameterName><![CDATA[p_numAgents]]></ParameterName>
 				</Parameter>
 				<Parameter>
@@ -1839,9 +1814,6 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 				</Expression>
 			</FreeformParamValue>
 			<FreeformParamValue>	
-				<Id>1631547705324</Id>
-			</FreeformParamValue>
-			<FreeformParamValue>	
 				<Id>1631606505744</Id>
 			</FreeformParamValue>
 			<FreeformParamValue>	
@@ -1894,10 +1866,6 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 			</RangeVariationParamValue>
 			<RangeVariationParamValue>	
 				<Id>1631542638078</Id>
-				<Type>FIXED</Type>
-			</RangeVariationParamValue>
-			<RangeVariationParamValue>	
-				<Id>1631547705324</Id>
 				<Type>FIXED</Type>
 			</RangeVariationParamValue>
 			<RangeVariationParamValue>	
@@ -1967,15 +1935,16 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 		<!--   =========  Parameter Variation Experiment   ========  -->
 		<ParamVariationExperiment ActiveObjectClassId="1631520769012">
 			<Id>1631704762483</Id>
-			<Name><![CDATA[Scenarios]]></Name>
+			<Name><![CDATA[Susceptability]]></Name>
 			<ClientAreaTopLeft><X>0</X><Y>0</Y></ClientAreaTopLeft>
 			<CommandLineArguments><![CDATA[]]></CommandLineArguments>
-			<InitialSetupCode><![CDATA[v_whichSusceptability = {]]></InitialSetupCode>
+			<InitialSetupCode><![CDATA[v_whichSusceptability = new String[]{"none", "total", "random", "alternate"};]]></InitialSetupCode>
 			<MaximumMemory>512</MaximumMemory>
 			<RandomNumberGenerationType>randomSeed</RandomNumberGenerationType>
 			<CustomGeneratorCode>new Random()</CustomGeneratorCode>
 			<BeforeSimulationRunCode><![CDATA[root.v_iteration = getCurrentIteration();
-root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
+root.v_replicate = getCurrentReplication();
+root.p_whichSusceptability = v_whichSusceptability[getCurrentIteration()-1];]]></BeforeSimulationRunCode>
 			<SeedValue>1</SeedValue>
 			<SelectionModeForSimultaneousEvents>LIFO</SelectionModeForSimultaneousEvents>
 			<VmArgs><![CDATA[]]></VmArgs>
@@ -1991,30 +1960,9 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 					<ShowLabel>true</ShowLabel>
 					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
 						<Type><![CDATA[String[]]]></Type>        
-					</Properties>
-				</Variable>
-				<Variable Class="PlainVariable">
-					<Id>1631704762487</Id>
-					<Name><![CDATA[v_spouseThreshold]]></Name>
-					<X>80</X><Y>150</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[double[]]]></Type>        
-					</Properties>
-				</Variable>
-				<Variable Class="PlainVariable">
-					<Id>1631704762489</Id>
-					<Name><![CDATA[v_assortativeWeighting]]></Name>
-					<X>80</X><Y>170</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[double[]]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[{"none", "total", "random", "alternate"}]]></Code>
+						</InitialValue>
 					</Properties>
 				</Variable>
 			</Variables>
@@ -2033,7 +1981,7 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 					<Z>0</Z>
 					<Rotation>0.0</Rotation>
 					<Color>-14774017</Color>
-					<Text><![CDATA[Baseline]]></Text>
+					<Text><![CDATA[Susceptability]]></Text>
 					<Font>
 						<Name>SansSerif</Name>
 						<Size>24</Size>
@@ -2045,7 +1993,7 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 
 			<AllowParallelEvaluations>true</AllowParallelEvaluations>
 			<UseFreeformParameters>true</UseFreeformParameters>
-			<NumberOfRuns>1</NumberOfRuns>
+			<NumberOfRuns>4</NumberOfRuns>
 			<FreeformParamValue>	
 				<Id>1631525854973</Id>
 			</FreeformParamValue>
@@ -2062,10 +2010,10 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 				</Expression>
 			</FreeformParamValue>
 			<FreeformParamValue>	
-				<Id>1631547705324</Id>
-			</FreeformParamValue>
-			<FreeformParamValue>	
 				<Id>1631606505744</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[2000]]></Code>
+				</Expression>
 			</FreeformParamValue>
 			<FreeformParamValue>	
 				<Id>1631606512403</Id>
@@ -2120,10 +2068,6 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 				<Type>FIXED</Type>
 			</RangeVariationParamValue>
 			<RangeVariationParamValue>	
-				<Id>1631547705324</Id>
-				<Type>FIXED</Type>
-			</RangeVariationParamValue>
-			<RangeVariationParamValue>	
 				<Id>1631606505744</Id>
 				<Type>FIXED</Type>
 			</RangeVariationParamValue>
@@ -2172,7 +2116,7 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 			</ModelTimeProperties>
 			<PresentationProperties>
 				<EnableZoomAndPanning>true</EnableZoomAndPanning>
-				<Title><![CDATA[BMI-spouses-GxE : Susceptability]]></Title>
+				<Title><![CDATA[Susceptability]]></Title>
 				<EnableDeveloperPanel>true</EnableDeveloperPanel>
 				<ShowDeveloperPanelOnStart>true</ShowDeveloperPanelOnStart>
 			</PresentationProperties>
