@@ -6,21 +6,57 @@
 library(data.table)
 library(brms)
 library(texreg)
+library(foreach)
+library(doParallel)
 
 path = "models/BMI-spouses-GxE/output/"
+clusters = 3
+
+# remove files
+# files = paste0(path, list.files(path, pattern = "*.csv"))
+# sapply(files, unlink, recursive = TRUE)
+
 files = paste0(path, list.files(path, pattern = "bmi"))
 dat = rbindlist(lapply(files, fread))
 
 files = paste0(path, list.files(path, pattern = "parameter"))
 params = rbindlist(lapply(files, fread))
 
-table(dat$iteration)
+# dat[, couple := paste0(sort(.SD), collapse = ""), 
+    # .SDcols = c("id", "spouse_id"), 
+    # by = .(1:nrow(dat))]
+# setorder(dat, couple)
+
+table(dat$iteration) 
 table(dat$replicate)
 
 cor(dat$bmi, dat$bmi_spouse)
+cor(dat$pgs, dat$pgs_spouse)
+table(dat$susceptability)
 
-dat
+cl = makeCluster(clusters)
+registerDoParallel(cl)
+
+output = foreach(i = 1:max(params$replicate),
+        .packages = c("brms", "cmdstanr", "doParallel", 
+            "data.table", "rstan", "rethinking")) %dopar% {
+    
+    options(mc.cores = 1)
+    temp = copy(dat[iteration == 1 & replicate == i])
+    brm(bmi ~ pgs + bmi_spouse + pgs * bmi_spouse, 
+        data = temp, iter = 2000, chains = 1, backend = "cmdstan")
+}
+stopCluster(cl)
+
+baseline = combine_models(mlist = output, check_data = FALSE)
+
+summary(baseline)
 params
+
+m2 = brm(bmi ~ pgs + bmi_spouse + pgs * bmi_spouse, 
+    data = dat, iter = 2000, chains = 1, backend = "cmdstan")
+summary(m2)
+ 
 
 m0 = brm(bmi ~ pgs + environment + pgs * environment, 
     data = dat, iter = 2000, chains = 1, backend = "cmdstan")
