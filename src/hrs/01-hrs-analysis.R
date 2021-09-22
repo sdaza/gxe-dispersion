@@ -32,6 +32,24 @@ dat[, cbirthyr := scale(birthyr, scale = FALSE)]
 dim(dat)
 countmis(dat)
 
+# correlation spouses
+dat[, id := 1:.N, hhid]
+testing = dcast(dat, hhid ~ id, 
+    value.var = c("rbmi", "bmi_pgs", "raeduc", "rshlt", "rmbmi"))
+testing
+
+cor(testing[, .(rbmi_1, rbmi_2)], use = "complete.obs")
+cor(testing[, .(rmbmi_1, rmbmi_2)], use = "complete.obs")
+cor(testing[, .(bmi_pgs_1, bmi_pgs_2)], use = "complete.obs")
+cor(testing[, .(raeduc_1, raeduc_2)], use = "complete.obs")
+cor(testing[, .(rshlt_1, rshlt_2)], use = "complete.obs")
+cor(testing[, .(rbmi_1, raeduc_1)], use = "complete.obs")
+
+table()
+summary(testing)
+
+dcast()
+names(dat)
 t = lm(srbmi ~ birthyr, data = dat)
 dat[, resd := resid(t)]
 savepdf("testing")

@@ -259,3 +259,21 @@ extractBRMS = function(model, r2 = FALSE) {
     return(tr)
 }
 
+
+# run models for simulations
+estimateModel = function(f, dat, iter = NULL, clusters = 4) {
+
+    cl = makeCluster(clusters)
+    registerDoParallel(cl)
+
+    output = foreach(i = 1:max(params$replicate),
+        .packages = c("brms", "cmdstanr", "doParallel", 
+            "data.table")) %dopar% {
+    
+    temp = copy(dat[iteration == iter & replicate == i])
+    brm(f, data = temp, iter = 2000, cores = 1, chains = 1, backend = "cmdstan")
+    }
+    stopCluster(cl)
+    baseline = combine_models(mlist = output, check_data = FALSE)
+    return(baseline)
+}
