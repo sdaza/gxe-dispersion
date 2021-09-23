@@ -11,6 +11,48 @@
 	<EngineVersion>6</EngineVersion>
 	<JavaPackageName><![CDATA[bmi_spouses_gxe]]></JavaPackageName>
 	<ModelTimeUnit><![CDATA[Year]]></ModelTimeUnit>
+	<OptionLists>
+		<OptionList>
+			<Id>1631865214852</Id>
+			<Name><![CDATA[MatingTarget]]></Name>
+			<Option>
+				<Id>1631865215062</Id>
+				<Name><![CDATA[p_singleBMI]]></Name>
+			</Option>
+			<Option>
+				<Id>1631865223191</Id>
+				<Name><![CDATA[p_environment]]></Name>
+			</Option>
+		</OptionList>
+		<OptionList>
+			<Id>1631865412845</Id>
+			<Name><![CDATA[SusceptibilityType]]></Name>
+			<Option>
+				<Id>1631865413029</Id>
+				<Name><![CDATA[none]]></Name>
+			</Option>
+			<Option>
+				<Id>1631865417367</Id>
+				<Name><![CDATA[total]]></Name>
+			</Option>
+			<Option>
+				<Id>1631865422677</Id>
+				<Name><![CDATA[alternate]]></Name>
+			</Option>
+			<Option>
+				<Id>1631865429920</Id>
+				<Name><![CDATA[randomSame]]></Name>
+			</Option>
+			<Option>
+				<Id>1631865419470</Id>
+				<Name><![CDATA[randomDifferent]]></Name>
+			</Option>
+			<Option>
+				<Id>1632212785830</Id>
+				<Name><![CDATA[alternateOrder]]></Name>
+			</Option>
+		</OptionList>
+	</OptionLists>
 	<ActiveObjectClasses>
 		<!--   =========   Active Object Class   ========  -->
 		<ActiveObjectClass>
@@ -21,9 +63,8 @@
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;]]></Import>
-			<StartupCode><![CDATA[f_initiateFiles();]]></StartupCode>
-			<DestroyCode><![CDATA[
-f_closeFiles();]]></DestroyCode>
+			<StartupCode><![CDATA[if (p_exportData) f_initiateFiles();]]></StartupCode>
+			<DestroyCode><![CDATA[if (p_exportData) f_closeFiles();]]></DestroyCode>
 			<Generic>false</Generic>
 			<GenericParameter>
 				<Id>1631520769010</Id>
@@ -120,7 +161,7 @@ f_closeFiles();]]></DestroyCode>
 				<Variable Class="PlainVariable">
 					<Id>1631524063100</Id>
 					<Name><![CDATA[v_nextID]]></Name>
-					<X>70</X><Y>880</Y>
+					<X>80</X><Y>950</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -132,7 +173,7 @@ f_closeFiles();]]></DestroyCode>
 				<Variable Class="PlainVariable">
 					<Id>1631525854968</Id>
 					<Name><![CDATA[v_iteration]]></Name>
-					<X>70</X><Y>900</Y>
+					<X>80</X><Y>970</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -144,7 +185,19 @@ f_closeFiles();]]></DestroyCode>
 				<Variable Class="PlainVariable">
 					<Id>1631525854970</Id>
 					<Name><![CDATA[v_replicate]]></Name>
-					<X>70</X><Y>920</Y>
+					<X>80</X><Y>990</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[int]]></Type>        
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1632228896889</Id>
+					<Name><![CDATA[v_nextCoupleID]]></Name>
+					<X>80</X><Y>1050</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -156,7 +209,7 @@ f_closeFiles();]]></DestroyCode>
 				<Variable Class="Parameter">
 					<Id>1631525854973</Id>
 					<Name><![CDATA[p_filePath]]></Name>
-					<X>70</X><Y>1080</Y>
+					<X>400</X><Y>960</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -173,14 +226,15 @@ f_closeFiles();]]></DestroyCode>
 							<EditorContolType>TEXT_BOX</EditorContolType>
 							<MinSliderValue><![CDATA[0]]></MinSliderValue>
 							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
-							<DelimeterType>NO_DELIMETER</DelimeterType>
+							<DelimeterType>SEPARATE_SECTION</DelimeterType>
+							<StartSection><![CDATA[General]]></StartSection>
 						</ParameterEditor>
 					</Properties>                 
 				</Variable>
 				<Variable Class="Parameter">
 					<Id>1631525854976</Id>
 					<Name><![CDATA[p_fileNames]]></Name>
-					<X>70</X><Y>1100</Y>
+					<X>400</X><Y>980</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -202,58 +256,9 @@ f_closeFiles();]]></DestroyCode>
 					</Properties>                 
 				</Variable>
 				<Variable Class="Parameter">
-					<Id>1631532917644</Id>
-					<Name><![CDATA[p_spouseSelectionRandom]]></Name>
-					<X>80</X><Y>680</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
-						<Type><![CDATA[boolean]]></Type>
-						<UnitType><![CDATA[NONE]]></UnitType>
-						<SdArray>false</SdArray>
-						<DefaultValue Class="CodeValue">
-							<Code><![CDATA[false]]></Code>
-						</DefaultValue>
-						<ParameterEditor>
-							<Id>1631532917642</Id>
-							<EditorContolType>CHECK_BOX</EditorContolType>
-							<MinSliderValue><![CDATA[0]]></MinSliderValue>
-							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
-							<DelimeterType>NO_DELIMETER</DelimeterType>
-						</ParameterEditor>
-					</Properties>                 
-				</Variable>
-				<Variable Class="Parameter">
-					<Id>1631542638078</Id>
-					<Name><![CDATA[p_spouseThreshold]]></Name>
-					<X>80</X><Y>700</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
-						<Type><![CDATA[double]]></Type>
-						<UnitType><![CDATA[NONE]]></UnitType>
-						<SdArray>false</SdArray>
-						<DefaultValue Class="CodeValue">
-							<Code><![CDATA[0.3]]></Code>
-						</DefaultValue>
-						<ParameterEditor>
-							<Id>1631542638076</Id>
-							<Label><![CDATA[p_spouseEnvironmentThreshold]]></Label>
-							<EditorContolType>TEXT_BOX</EditorContolType>
-							<MinSliderValue><![CDATA[0]]></MinSliderValue>
-							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
-							<DelimeterType>NO_DELIMETER</DelimeterType>
-						</ParameterEditor>
-					</Properties>                 
-				</Variable>
-				<Variable Class="Parameter">
 					<Id>1631606505744</Id>
 					<Name><![CDATA[p_numAgents]]></Name>
-					<X>70</X><Y>940</Y>
+					<X>80</X><Y>1010</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -270,7 +275,105 @@ f_closeFiles();]]></DestroyCode>
 							<EditorContolType>TEXT_BOX</EditorContolType>
 							<MinSliderValue><![CDATA[0]]></MinSliderValue>
 							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1631787304702</Id>
+					<Name><![CDATA[p_exportData]]></Name>
+					<X>400</X><Y>1040</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[boolean]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA[false]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1631787304700</Id>
+							<EditorContolType>CHECK_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1631532917644</Id>
+					<Name><![CDATA[p_propRandomMating]]></Name>
+					<X>80</X><Y>680</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[double]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA[0]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1631532917642</Id>
+							<Label><![CDATA[p_propRandomMating]]></Label>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
 							<DelimeterType>SEPARATE_SECTION</DelimeterType>
+							<StartSection><![CDATA[Assortative mating]]></StartSection>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1631875387040</Id>
+					<Name><![CDATA[p_diffNoise]]></Name>
+					<X>80</X><Y>700</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[double]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA[2.2]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1631875387038</Id>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1631824890126</Id>
+					<Name><![CDATA[p_assortativeMatingTarget]]></Name>
+					<X>80</X><Y>720</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[MatingTarget]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA[p_environment]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1631824890124</Id>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
 						</ParameterEditor>
 					</Properties>                 
 				</Variable>
@@ -294,7 +397,8 @@ f_closeFiles();]]></DestroyCode>
 							<EditorContolType>TEXT_BOX</EditorContolType>
 							<MinSliderValue><![CDATA[0]]></MinSliderValue>
 							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
-							<DelimeterType>NO_DELIMETER</DelimeterType>
+							<DelimeterType>SEPARATE_SECTION</DelimeterType>
+							<StartSection><![CDATA[Single BMI]]></StartSection>
 						</ParameterEditor>
 					</Properties>                 
 				</Variable>
@@ -390,7 +494,8 @@ f_closeFiles();]]></DestroyCode>
 							<EditorContolType>TEXT_BOX</EditorContolType>
 							<MinSliderValue><![CDATA[0]]></MinSliderValue>
 							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
-							<DelimeterType>NO_DELIMETER</DelimeterType>
+							<DelimeterType>SEPARATE_SECTION</DelimeterType>
+							<StartSection><![CDATA[Married BMI]]></StartSection>
 						</ParameterEditor>
 					</Properties>                 
 				</Variable>
@@ -468,21 +573,46 @@ f_closeFiles();]]></DestroyCode>
 				</Variable>
 				<Variable Class="Parameter">
 					<Id>1631702298547</Id>
-					<Name><![CDATA[p_whichSusceptability]]></Name>
-					<X>80</X><Y>750</Y>
+					<Name><![CDATA[p_susceptibilityType]]></Name>
+					<X>300</X><Y>860</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
-						<Type><![CDATA[String]]></Type>
+						<Type><![CDATA[SusceptibilityType]]></Type>
 						<UnitType><![CDATA[NONE]]></UnitType>
 						<SdArray>false</SdArray>
 						<DefaultValue Class="CodeValue">
-							<Code><![CDATA["random"]]></Code>
+							<Code><![CDATA[randomDifferent]]></Code>
 						</DefaultValue>
 						<ParameterEditor>
 							<Id>1631702298545</Id>
+							<Label><![CDATA[p_susceptibilityType]]></Label>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1631785295603</Id>
+					<Name><![CDATA[p_betaH]]></Name>
+					<X>480</X><Y>740</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[double]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA[1.0]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1631785295601</Id>
 							<EditorContolType>TEXT_BOX</EditorContolType>
 							<MinSliderValue><![CDATA[0]]></MinSliderValue>
 							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
@@ -493,7 +623,7 @@ f_closeFiles();]]></DestroyCode>
 				<Variable Class="CollectionVariable">
 					<Id>1631525854954</Id>
 					<Name><![CDATA[col_textFiles]]></Name>
-					<X>70</X><Y>1120</Y>
+					<X>400</X><Y>1000</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -508,7 +638,7 @@ f_closeFiles();]]></DestroyCode>
 				<Variable Class="CollectionVariable">
 					<Id>1631525854956</Id>
 					<Name><![CDATA[col_fileColumns]]></Name>
-					<X>70</X><Y>1140</Y>
+					<X>400</X><Y>1020</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -525,7 +655,7 @@ f_closeFiles();]]></DestroyCode>
 				<Event>
 					<Id>1631527367030</Id>
 					<Name><![CDATA[stopSimulation]]></Name>
-					<X>70</X><Y>960</Y>
+					<X>80</X><Y>1030</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -551,8 +681,13 @@ f_closeFiles();]]></DestroyCode>
 						</RecurrenceCode>
 						<Condition><![CDATA[false]]></Condition>
 					</Properties>
-					<Action><![CDATA[if (time() >= 100)  {
-	f_writeParameters(); 
+					<Action><![CDATA[if (time() >= 20)  {
+	if (p_exportData) {
+		f_writeParameters();
+		for (Person p : people) {
+			f_writeBMIData(p); 
+		}
+	}
 	finishSimulation();
 }]]></Action>
 				</Event>
@@ -562,60 +697,42 @@ f_closeFiles();]]></DestroyCode>
 					<ReturnModificator>VOID</ReturnModificator>
 					<ReturnType><![CDATA[double]]></ReturnType>
 					<Id>1631522431209</Id>
-					<Name><![CDATA[f_selectSpouse]]></Name>
-					<X>80</X><Y>720</Y>
+					<Name><![CDATA[f_defineHousehold]]></Name>
+					<X>80</X><Y>740</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Parameter>
-						<Name><![CDATA[agent]]></Name>
+						<Name><![CDATA[ego]]></Name>
 						<Type><![CDATA[Person]]></Type>
 					</Parameter>
-					<Body><![CDATA[if (!agent.spouse.isConnected()) {
-	if (p_spouseSelectionRandom) {
-		agent.spouse.connectTo(randomWhere(people, p -> !p.spouse.isConnected() && p != agent));
-	}
-	else {	
-	
-/*
-		agent.spouse.connectTo(randomWhere(people, p -> !p.spouse.isConnected() && 
-		p != agent && 
-		((p_assortiveWeight * abs(p.p_environment - agent.p_environment) + 
-			(1.0 - p_assortiveWeight)  * abs(p.p_unobserved - agent.p_unobserved)) <= p_spouseThreshold)));
-*/		
-		for (int i = 0; i < 20; i++) {
-			
-			agent.spouse.connectTo(randomWhere(people, p -> !p.spouse.isConnected() && 
-				p != agent && 
-			abs(p.p_environment - agent.p_environment) <= p_spouseThreshold));
-			if (agent.spouse.isConnected()) break;	
-		}
-	}
-}
-
-// random selection if criterion is not met
-if (!agent.spouse.isConnected()) {
-	agent.spouse.connectTo(randomWhere(people, p -> !p.spouse.isConnected() && p != agent));
+					<Body><![CDATA[// partner
+if (!ego.spouse.isConnected()) {
+	f_getPartner(ego, p_propRandomMating);
 }
 
 // define susceptability 
-if (agent.p_susceptability == -99) {
-	f_defineSusceptability(agent, agent.spouse.getConnectedAgent());
+if (ego.p_susceptability == -99) {
+	f_defineSusceptibility(ego, ego.spouse.getConnectedAgent());
 }
 
-double household = 0.2 * agent.p_environment + 0.2 * agent.spouse.getConnectedAgent().p_environment 
-	+ normal(1, 0);
-if (agent.p_household == -99) agent.p_household = household;
-if (agent.spouse.getConnectedAgent().p_household == -99) agent.spouse.getConnectedAgent().p_household = household;
-]]></Body>
+// define shared environment (household)
+double household = p_betaH * ego.p_environment + 
+	p_betaH * ego.spouse.getConnectedAgent().p_environment + normal(1, 0);
+if (ego.p_household == -99) ego.p_household = household;
+if (ego.spouse.getConnectedAgent().p_household == -99) ego.spouse.getConnectedAgent().p_household = household;
+
+v_nextCoupleID++;
+if (ego.p_coupleID == -99) ego.p_coupleID = v_nextCoupleID;
+if (ego.spouse.getConnectedAgent().p_coupleID == -99) ego.spouse.getConnectedAgent().p_coupleID = v_nextCoupleID;]]></Body>
 				</Function>
 				<Function AccessType="default" StaticFunction="false">
 					<ReturnModificator>VOID</ReturnModificator>
 					<ReturnType><![CDATA[double]]></ReturnType>
 					<Id>1631525854958</Id>
 					<Name><![CDATA[f_initiateFiles]]></Name>
-					<X>190</X><Y>1080</Y>
+					<X>520</X><Y>960</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>false</PresentationFlag>
@@ -629,9 +746,10 @@ String[] col = new String[]{};
 // parameters
 if (f_textFileInclude("bmi", p_fileNames)) {
 
-	col = new String[]{"iteration", "replicate", "time", "id",  "spouse_id",
-		"bmi","bmi_spouse", "pgs", "pgs_spouse", "environment", "environment_spouse",
-		 "household", "household_spouse", "susceptability"};
+	col = new String[]{"iteration", "replicate", "time", "ego_id",  "alter_id", "couple_id",
+		"ego_bmi_married","alter_bmi_married", "ego_bmi_single" , "alter_bmi_single", 
+		"ego_pgs", "alter_pgs", "ego_environment", "alter_environment",
+		"ego_household", "alter_household", "ego_susceptibility", "alter_susceptibility"};
 	col_fileColumns.put("bmi", col);
 
 }
@@ -639,11 +757,14 @@ if (f_textFileInclude("bmi", p_fileNames)) {
 // parameters
 if (f_textFileInclude("parameters", p_fileNames)) {
 
-	col = new String[]{"iteration", "replicate", "agents", "mating_random", "spouse_threshold", 
-		"susceptability",
+	col = new String[]{"date", 
+		"iteration", "replicate", "agents", "prop_random_mating", "mating_diff_noise", 
+		"assortative_mating_variable",
+		"susceptibility",
 		"beta_pgs", "beta_e", "beta_gxe",
-		"beta_household", "beta_gxh",
-		 "beta_influence_spouse", "beta_gxs", "sigma_bmi"};
+		"beta_household", "beta_gxh", 
+		 "beta_influence_spouse", "beta_gxs", "sigma_bmi", 
+		 "beta_h"};
 	col_fileColumns.put("parameters", col);
 }   	    
 		    
@@ -671,7 +792,7 @@ for (int i=0; i < p_fileNames.length; i++) {
 					<ReturnType><![CDATA[double]]></ReturnType>
 					<Id>1631525854960</Id>
 					<Name><![CDATA[f_closeFiles]]></Name>
-					<X>190</X><Y>1100</Y>
+					<X>520</X><Y>980</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>false</PresentationFlag>
@@ -693,7 +814,7 @@ for (int i=0; i < p_fileNames.length; i++) {
 					<ReturnType><![CDATA[double]]></ReturnType>
 					<Id>1631525854962</Id>
 					<Name><![CDATA[f_writeBMIData]]></Name>
-					<X>190</X><Y>1160</Y>
+					<X>520</X><Y>1040</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>false</PresentationFlag>
@@ -712,15 +833,19 @@ try {
    	time() + s +
    	agent.p_id + s +
    	spouse.p_id + s +
-   	agent.p_BMI + s +
-   	spouse.p_BMI + s +
+   	agent.p_coupleID + s +
+   	agent.p_marriedBMI + s +
+   	spouse.p_marriedBMI + s +
+   	agent.p_singleBMI + s +
+   	spouse.p_singleBMI + s +
    	agent.p_polygenicScore + s + 
    	spouse.p_polygenicScore + s + 
    	agent.p_environment + s +
    	spouse.p_environment + s +
    	agent.p_household + s + 
 	spouse.p_household + s +
-   	agent.p_susceptability + "\n");
+   	agent.p_susceptability + s + 
+   	spouse.p_susceptability + "\n");
 	}
 catch (IOException e) {
 	e.printStackTrace();
@@ -731,7 +856,7 @@ catch (IOException e) {
 					<ReturnType><![CDATA[String]]></ReturnType>
 					<Id>1631525854964</Id>
 					<Name><![CDATA[f_collapseStrings]]></Name>
-					<X>190</X><Y>1140</Y>
+					<X>520</X><Y>1020</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>false</PresentationFlag>
@@ -758,7 +883,7 @@ return output;]]></Body>
 					<ReturnType><![CDATA[boolean]]></ReturnType>
 					<Id>1631525854966</Id>
 					<Name><![CDATA[f_textFileInclude]]></Name>
-					<X>190</X><Y>1120</Y>
+					<X>520</X><Y>1000</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>false</PresentationFlag>
@@ -788,20 +913,24 @@ return false;]]></Body>
 					<ReturnType><![CDATA[double]]></ReturnType>
 					<Id>1631606380163</Id>
 					<Name><![CDATA[f_writeParameters]]></Name>
-					<X>190</X><Y>1180</Y>
+					<X>520</X><Y>1060</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>false</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
-					<Body><![CDATA[String s = new String(";");	
+					<Body><![CDATA[Date date = new Date(); 
+
+String s = new String(";");	
 try {
 	col_textFiles.get("parameters").write(
+	date + s + 
     v_iteration + s +
     v_replicate + s +
     p_numAgents + s +
-   	p_spouseSelectionRandom + s +
-   	p_spouseThreshold + s +
-   	p_whichSusceptability + s +
+   	p_propRandomMating + s +
+   	p_diffNoise + s +
+   	p_assortativeMatingTarget + s +
+   	p_susceptibilityType + s +
     p_betaPolygenicScore + s +
     p_betaEnvironment + s +
     p_betaGxE + s +
@@ -809,7 +938,8 @@ try {
     p_betaGxH + s +
     p_betaSpouseInfluence + s +
     p_betaGxS + s +
-    p_sigmaBMI + "\n");
+    p_sigmaBMI + s + 
+    p_betaH + "\n");
 	}
 catch (IOException e) {
 	e.printStackTrace();
@@ -819,7 +949,7 @@ catch (IOException e) {
 					<ReturnModificator>VOID</ReturnModificator>
 					<ReturnType><![CDATA[double]]></ReturnType>
 					<Id>1631607643003</Id>
-					<Name><![CDATA[f_defineBMI]]></Name>
+					<Name><![CDATA[f_defineSingleBMI]]></Name>
 					<X>300</X><Y>800</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
@@ -829,24 +959,20 @@ catch (IOException e) {
 						<Name><![CDATA[agent]]></Name>
 						<Type><![CDATA[Person]]></Type>
 					</Parameter>
-					<Body><![CDATA[/* 
-agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore + p_betaEnvironment * agent.p_environment +
-	p_betaGxE * agent.p_polygenicScore * agent.p_environment + 
-	p_betaUnobserved * agent.p_unobserved + p_betaGxEU * agent.p_unobserved * agent.p_polygenicScore + 
-	normal(p_sigmaBMI, 0);
-*/
-
-agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore + 
+					<Body><![CDATA[if (agent.p_singleBMI == -99) {
+	agent.p_singleBMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore + 
 	p_betaEnvironment * agent.p_environment +
 	p_betaGxE * agent.p_polygenicScore * agent.p_environment +
-	normal(p_sigmaBMI, 0);]]></Body>
+	normal(p_sigmaBMI, 0);
+}
+// traceln(agent.p_singleBMI);]]></Body>
 				</Function>
 				<Function AccessType="default" StaticFunction="false">
 					<ReturnModificator>VOID</ReturnModificator>
 					<ReturnType><![CDATA[double]]></ReturnType>
 					<Id>1631702034376</Id>
-					<Name><![CDATA[f_defineSusceptability]]></Name>
-					<X>80</X><Y>770</Y>
+					<Name><![CDATA[f_defineSusceptibility]]></Name>
+					<X>300</X><Y>880</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -859,19 +985,95 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 						<Name><![CDATA[spouse]]></Name>
 						<Type><![CDATA[Person]]></Type>
 					</Parameter>
-					<Body><![CDATA[if (p_whichSusceptability == "random") {
-	agent.p_susceptability =  uniform(0,1);
-	spouse.p_susceptability =  uniform(0,1);
-} else if (p_whichSusceptability == "total") {
+					<Body><![CDATA[if (p_susceptibilityType == randomDifferent) {
+	agent.p_susceptability = uniform(0,1);
+	spouse.p_susceptability = uniform(0,1);
+} else if (p_susceptibilityType == total) {
 	agent.p_susceptability = 1.0;
 	spouse.p_susceptability = 1.0;
-} else if (p_whichSusceptability == "none") {
+} else if (p_susceptibilityType == randomSame) {
+	double v = uniform(0,1);
+	agent.p_susceptability = v;
+	spouse.p_susceptability = v;
+} else if (p_susceptibilityType == none) {
 	agent.p_susceptability = 0.0;
 	spouse.p_susceptability = 0.0;
-} else if (p_whichSusceptability == "alternate") {
+} else if (p_susceptibilityType == alternate) {
 	agent.p_susceptability = 1.0;
 	spouse.p_susceptability = 0.0;
+}  else if (p_susceptibilityType == alternateOrder) {
+	if (agent.p_singleBMI > spouse.p_singleBMI) {
+		spouse.p_susceptability = 0.99;
+		agent.p_susceptability = 0.01;
+	} else if (agent.p_singleBMI < spouse.p_singleBMI) {
+		spouse.p_susceptability = 0.01;
+		agent.p_susceptability = 0.99;
+	}
 }]]></Body>
+				</Function>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>VOID</ReturnModificator>
+					<ReturnType><![CDATA[Person]]></ReturnType>
+					<Id>1631871162530</Id>
+					<Name><![CDATA[f_getPartner]]></Name>
+					<X>80</X><Y>760</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Parameter>
+						<Name><![CDATA[ego]]></Name>
+						<Type><![CDATA[Person]]></Type>
+					</Parameter>
+					<Parameter>
+						<Name><![CDATA[prop]]></Name>
+						<Type><![CDATA[double]]></Type>
+					</Parameter>
+					<Body><![CDATA[double diff = 999;
+String var = p_assortativeMatingTarget.name();
+
+List<Person> alters = filter(people, p -> p != ego && !p.spouse.isConnected());
+Person partner = alters.get(0);
+
+for (Person p : alters) {
+	if (randomTrue(prop)) {
+		partner = randomFrom(alters);
+	} else {
+		double a = ego.getParameter(var);
+		double b = p.getParameter(var);
+		double value = sqrt(pow(a - b + normal(p_diffNoise,0), 2));
+		if (value < diff) {
+	 		partner = p;
+	 		diff = value;
+		}
+	}
+}
+
+ego.spouse.connectTo(partner);]]></Body>
+				</Function>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>VOID</ReturnModificator>
+					<ReturnType><![CDATA[double]]></ReturnType>
+					<Id>1631882092486</Id>
+					<Name><![CDATA[f_defineMarriedBMI]]></Name>
+					<X>300</X><Y>820</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Parameter>
+						<Name><![CDATA[agent]]></Name>
+						<Type><![CDATA[Person]]></Type>
+					</Parameter>
+					<Body><![CDATA[if (agent.p_marriedBMI == -99) {
+	Person s = agent.spouse.getConnectedAgent();
+	agent.p_marriedBMI = agent.p_singleBMI +
+	    agent.p_susceptability * p_betaSpouseInfluence * s.p_singleBMI + 
+		agent.p_susceptability * p_betaGxS * s.p_singleBMI * agent.p_polygenicScore +
+		p_betaHousehold * agent.p_household + 
+		p_betaGxH * agent.p_household * agent.p_polygenicScore;
+}
+]]></Body>
 				</Function>
 			</Functions>
 			<AgentLinks>
@@ -900,7 +1102,7 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 				<EmbeddedObject>
 					<Id>1631520824547</Id>
 					<Name><![CDATA[people]]></Name>
-					<X>180</X><Y>880</Y>
+					<X>190</X><Y>950</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -919,7 +1121,7 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 					</GenericParameterSubstitute>
 					<Parameters>
 						<Parameter>
-							<Name><![CDATA[p_BMI]]></Name>
+							<Name><![CDATA[p_marriedBMI]]></Name>
 						</Parameter>
 						<Parameter>
 							<Name><![CDATA[p_polygenicScore]]></Name>
@@ -940,13 +1142,16 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 							</Value>
 						</Parameter>
 						<Parameter>
-							<Name><![CDATA[p_previousBMI]]></Name>
+							<Name><![CDATA[p_singleBMI]]></Name>
 						</Parameter>
 						<Parameter>
 							<Name><![CDATA[p_susceptability]]></Name>
 						</Parameter>
 						<Parameter>
 							<Name><![CDATA[p_household]]></Name>
+						</Parameter>
+						<Parameter>
+							<Name><![CDATA[p_coupleID]]></Name>
 						</Parameter>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
@@ -1027,7 +1232,7 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 				<Text>
 					<Id>1631525854952</Id>
 					<Name><![CDATA[text3]]></Name>
-					<X>60</X><Y>1040</Y>
+					<X>390</X><Y>920</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
 					<PublicFlag>true</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1090,7 +1295,7 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 				<Text>
 					<Id>1631607380979</Id>
 					<Name><![CDATA[text4]]></Name>
-					<X>60</X><Y>840</Y>
+					<X>70</X><Y>920</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
 					<PublicFlag>true</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1215,8 +1420,8 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 			<Variables>
 				<Variable Class="Parameter">
 					<Id>1631520948648</Id>
-					<Name><![CDATA[p_BMI]]></Name>
-					<X>40</X><Y>700</Y>
+					<Name><![CDATA[p_marriedBMI]]></Name>
+					<X>50</X><Y>280</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1225,6 +1430,9 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 						<Type><![CDATA[double]]></Type>
 						<UnitType><![CDATA[NONE]]></UnitType>
 						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA[-99]]></Code>
+						</DefaultValue>
 						<ParameterEditor>
 							<Id>1631520948646</Id>
 							<EditorContolType>TEXT_BOX</EditorContolType>
@@ -1237,7 +1445,7 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 				<Variable Class="Parameter">
 					<Id>1631520956774</Id>
 					<Name><![CDATA[p_polygenicScore]]></Name>
-					<X>40</X><Y>740</Y>
+					<X>50</X><Y>320</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1258,7 +1466,7 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 				<Variable Class="Parameter">
 					<Id>1631523840193</Id>
 					<Name><![CDATA[p_id]]></Name>
-					<X>40</X><Y>680</Y>
+					<X>50</X><Y>260</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1279,7 +1487,7 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 				<Variable Class="Parameter">
 					<Id>1631530657241</Id>
 					<Name><![CDATA[p_environment]]></Name>
-					<X>40</X><Y>760</Y>
+					<X>50</X><Y>340</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1299,8 +1507,8 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 				</Variable>
 				<Variable Class="Parameter">
 					<Id>1631611125074</Id>
-					<Name><![CDATA[p_previousBMI]]></Name>
-					<X>40</X><Y>720</Y>
+					<Name><![CDATA[p_singleBMI]]></Name>
+					<X>50</X><Y>300</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1324,7 +1532,7 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 				<Variable Class="Parameter">
 					<Id>1631634741870</Id>
 					<Name><![CDATA[p_susceptability]]></Name>
-					<X>40</X><Y>800</Y>
+					<X>50</X><Y>380</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1348,7 +1556,7 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 				<Variable Class="Parameter">
 					<Id>1631650280599</Id>
 					<Name><![CDATA[p_household]]></Name>
-					<X>40</X><Y>780</Y>
+					<X>50</X><Y>360</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1369,6 +1577,30 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 						</ParameterEditor>
 					</Properties>                 
 				</Variable>
+				<Variable Class="Parameter">
+					<Id>1632228827205</Id>
+					<Name><![CDATA[p_coupleID]]></Name>
+					<X>50</X><Y>400</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[double]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA[-99]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1632228827203</Id>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
 			</Variables>
 			<StatechartElements>
 				<StatechartElement Class="State" ParentState="ROOT_NODE">
@@ -1380,17 +1612,8 @@ agent.p_BMI = 0 + p_betaPolygenicScore * agent.p_polygenicScore +
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="90" Height="30">
-						<EntryAction><![CDATA[Person s = spouse.getConnectedAgent();
-
-if (s.p_previousBMI == -99) s.p_previousBMI = s.p_BMI;
-if (p_previousBMI == -99) p_previousBMI = p_BMI;
-
-p_BMI = p_BMI + p_susceptability * main.p_betaSpouseInfluence * s.p_previousBMI + 
-	p_susceptability * main.p_betaGxS * s.p_previousBMI * p_polygenicScore +
-	main.p_betaHousehold * p_household + 
-	main.p_betaGxH * p_polygenicScore * p_household;
-
-main.f_writeBMIData(this);]]></EntryAction>
+						<EntryAction><![CDATA[main.f_defineMarriedBMI(this);
+//traceln(p_marriedBMI);]]></EntryAction>
 						<FillColor/>
 					</Properties>
 				</StatechartElement>
@@ -1403,8 +1626,8 @@ main.f_writeBMIData(this);]]></EntryAction>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="90" Height="30">
-						<EntryAction><![CDATA[main.f_selectSpouse(this);
-main.f_defineBMI(this);]]></EntryAction>
+						<EntryAction><![CDATA[main.f_defineSingleBMI(this);]]></EntryAction>
+						<ExitAction><![CDATA[main.f_defineHousehold(this);]]></ExitAction>
 						<FillColor/>
 					</Properties>
 				</StatechartElement>
@@ -1459,7 +1682,7 @@ main.f_defineBMI(this);]]></EntryAction>
 					<Id>1631520780130</Id>
 					<Name><![CDATA[connections]]></Name>
 					<ExcludeFromBuild>true</ExcludeFromBuild>
-					<X>180</X><Y>630</Y>
+					<X>140</X><Y>-100</Y>
 					<Label><X>15</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1483,7 +1706,7 @@ main.f_defineBMI(this);]]></EntryAction>
 				<AgentLink>
 					<Id>1631521041917</Id>
 					<Name><![CDATA[spouse]]></Name>
-					<X>50</X><Y>650</Y>
+					<X>60</X><Y>230</Y>
 					<Label><X>15</X><Y>5</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1559,7 +1782,7 @@ main.f_defineBMI(this);]]></EntryAction>
 					<RadiusY>40</RadiusY>
 					<Rotation>0.0</Rotation>
 					<FillColor>-6632142</FillColor>
-					<FillColorCode><![CDATA[lerpColor((p_BMI + 2) / 6.0, yellow, red)]]></FillColorCode>
+					<FillColorCode><![CDATA[lerpColor((p_marriedBMI + 2) / 6.0, yellow, red)]]></FillColorCode>
 					<FillMaterial>null</FillMaterial>
 				</Oval>
 			</Presentation>
@@ -1618,7 +1841,7 @@ main.f_defineBMI(this);]]></EntryAction>
 		<!--   =========   Simulation Experiment   ========  -->
 		<SimulationExperiment ActiveObjectClassId="1631520769012">
 			<Id>1631520769014</Id>
-			<Name><![CDATA[Simulation]]></Name>
+			<Name><![CDATA[Testing]]></Name>
 			<ClientAreaTopLeft><X>0</X><Y>0</Y></ClientAreaTopLeft>
 			<CommandLineArguments><![CDATA[]]></CommandLineArguments>
 			<MaximumMemory>512</MaximumMemory>
@@ -1661,13 +1884,22 @@ main.f_defineBMI(this);]]></EntryAction>
 					<ParameterName><![CDATA[p_fileNames]]></ParameterName>
 				</Parameter>
 				<Parameter>
-					<ParameterName><![CDATA[p_spouseSelectionRandom]]></ParameterName>
-				</Parameter>
-				<Parameter>
-					<ParameterName><![CDATA[p_spouseThreshold]]></ParameterName>
-				</Parameter>
-				<Parameter>
 					<ParameterName><![CDATA[p_numAgents]]></ParameterName>
+				</Parameter>
+				<Parameter>
+					<ParameterName><![CDATA[p_exportData]]></ParameterName>
+				</Parameter>
+				<Parameter>
+					<ParameterName><![CDATA[p_propRandomMating]]></ParameterName>
+				</Parameter>
+				<Parameter>
+					<ParameterName><![CDATA[p_diffNoise]]></ParameterName>
+				</Parameter>
+				<Parameter>
+					<ParameterName><![CDATA[p_assortativeMatingTarget]]></ParameterName>
+					<ParameterValue Class="CodeValue">
+						<Code><![CDATA[p_singleBMI]]></Code>
+					</ParameterValue>
 				</Parameter>
 				<Parameter>
 					<ParameterName><![CDATA[p_betaEnvironment]]></ParameterName>
@@ -1697,7 +1929,13 @@ main.f_defineBMI(this);]]></EntryAction>
 					<ParameterName><![CDATA[p_betaGxH]]></ParameterName>
 				</Parameter>
 				<Parameter>
-					<ParameterName><![CDATA[p_whichSusceptability]]></ParameterName>
+					<ParameterName><![CDATA[p_susceptibilityType]]></ParameterName>
+					<ParameterValue Class="CodeValue">
+						<Code><![CDATA[alternate]]></Code>
+					</ParameterValue>
+				</Parameter>
+				<Parameter>
+					<ParameterName><![CDATA[p_betaH]]></ParameterName>
 				</Parameter>
 			</Parameters>			
 			<PresentationProperties>
@@ -1808,12 +2046,6 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 				<Id>1631532917644</Id>
 			</FreeformParamValue>
 			<FreeformParamValue>	
-				<Id>1631542638078</Id>
-				<Expression Class="CodeValue">
-					<Code><![CDATA[0.2]]></Code>
-				</Expression>
-			</FreeformParamValue>
-			<FreeformParamValue>	
 				<Id>1631606505744</Id>
 			</FreeformParamValue>
 			<FreeformParamValue>	
@@ -1849,8 +2081,20 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 			<FreeformParamValue>	
 				<Id>1631702298547</Id>
 				<Expression Class="CodeValue">
-					<Code><![CDATA["none"]]></Code>
+					<Code><![CDATA[none]]></Code>
 				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631785295603</Id>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631787304702</Id>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631824890126</Id>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631875387040</Id>
 			</FreeformParamValue>
 			<RangeVariationParamValue>	
 				<Id>1631525854973</Id>
@@ -1862,10 +2106,6 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 			</RangeVariationParamValue>
 			<RangeVariationParamValue>	
 				<Id>1631532917644</Id>
-				<Type>FIXED</Type>
-			</RangeVariationParamValue>
-			<RangeVariationParamValue>	
-				<Id>1631542638078</Id>
 				<Type>FIXED</Type>
 			</RangeVariationParamValue>
 			<RangeVariationParamValue>	
@@ -1908,6 +2148,22 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 				<Id>1631702298547</Id>
 				<Type>FIXED</Type>
 			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631785295603</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631787304702</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631824890126</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631875387040</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
 			<ModelTimeProperties>
 				<StopOption><![CDATA[Stop at specified time]]></StopOption>
 				<InitialDate><![CDATA[1631491200000]]></InitialDate>	
@@ -1935,16 +2191,22 @@ root.v_replicate = getCurrentReplication();]]></BeforeSimulationRunCode>
 		<!--   =========  Parameter Variation Experiment   ========  -->
 		<ParamVariationExperiment ActiveObjectClassId="1631520769012">
 			<Id>1631704762483</Id>
-			<Name><![CDATA[Susceptability]]></Name>
+			<Name><![CDATA[Susceptibility]]></Name>
 			<ClientAreaTopLeft><X>0</X><Y>0</Y></ClientAreaTopLeft>
+			<Import><![CDATA[import java.io.File;
+import org.apache.commons.io.FileUtils;
+import java.io.IOException;]]></Import>
 			<CommandLineArguments><![CDATA[]]></CommandLineArguments>
-			<InitialSetupCode><![CDATA[v_whichSusceptability = new String[]{"none", "total", "random", "alternate"};]]></InitialSetupCode>
+			<InitialSetupCode><![CDATA[v_susceptibilityType = SusceptibilityType.values();
+try { FileUtils.cleanDirectory(new File(v_filePath)); }
+catch(IOException ie) { ie.printStackTrace(); }]]></InitialSetupCode>
 			<MaximumMemory>512</MaximumMemory>
 			<RandomNumberGenerationType>randomSeed</RandomNumberGenerationType>
 			<CustomGeneratorCode>new Random()</CustomGeneratorCode>
 			<BeforeSimulationRunCode><![CDATA[root.v_iteration = getCurrentIteration();
 root.v_replicate = getCurrentReplication();
-root.p_whichSusceptability = v_whichSusceptability[getCurrentIteration()-1];]]></BeforeSimulationRunCode>
+root.p_susceptibilityType = v_susceptibilityType[getCurrentIteration()-1];]]></BeforeSimulationRunCode>
+			<AfterSimulationRunCode><![CDATA[v_replicates++;]]></AfterSimulationRunCode>
 			<SeedValue>1</SeedValue>
 			<SelectionModeForSimultaneousEvents>LIFO</SelectionModeForSimultaneousEvents>
 			<VmArgs><![CDATA[]]></VmArgs>
@@ -1952,16 +2214,43 @@ root.p_whichSusceptability = v_whichSusceptability[getCurrentIteration()-1];]]><
 			<Variables>
 				<Variable Class="PlainVariable">
 					<Id>1631704762485</Id>
-					<Name><![CDATA[v_whichSusceptability]]></Name>
+					<Name><![CDATA[v_susceptibilityType]]></Name>
 					<X>80</X><Y>130</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[String[]]]></Type>        
+						<Type><![CDATA[SusceptibilityType[]]]></Type>        
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1631881092281</Id>
+					<Name><![CDATA[v_replicates]]></Name>
+					<X>80</X><Y>160</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[double]]></Type>        
 						<InitialValue Class="CodeValue">
-							<Code><![CDATA[{"none", "total", "random", "alternate"}]]></Code>
+							<Code><![CDATA[0]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1632223710005</Id>
+					<Name><![CDATA[v_filePath]]></Name>
+					<X>80</X><Y>180</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA["output/"]]></Code>
 						</InitialValue>
 					</Properties>
 				</Variable>
@@ -1993,7 +2282,7 @@ root.p_whichSusceptability = v_whichSusceptability[getCurrentIteration()-1];]]><
 
 			<AllowParallelEvaluations>true</AllowParallelEvaluations>
 			<UseFreeformParameters>true</UseFreeformParameters>
-			<NumberOfRuns>4</NumberOfRuns>
+			<NumberOfRuns>6</NumberOfRuns>
 			<FreeformParamValue>	
 				<Id>1631525854973</Id>
 			</FreeformParamValue>
@@ -2004,28 +2293,34 @@ root.p_whichSusceptability = v_whichSusceptability[getCurrentIteration()-1];]]><
 				<Id>1631532917644</Id>
 			</FreeformParamValue>
 			<FreeformParamValue>	
-				<Id>1631542638078</Id>
-				<Expression Class="CodeValue">
-					<Code><![CDATA[0.2]]></Code>
-				</Expression>
-			</FreeformParamValue>
-			<FreeformParamValue>	
 				<Id>1631606505744</Id>
 				<Expression Class="CodeValue">
-					<Code><![CDATA[2000]]></Code>
+					<Code><![CDATA[4000]]></Code>
 				</Expression>
 			</FreeformParamValue>
 			<FreeformParamValue>	
 				<Id>1631606512403</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.30]]></Code>
+				</Expression>
 			</FreeformParamValue>
 			<FreeformParamValue>	
 				<Id>1631606514489</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.30]]></Code>
+				</Expression>
 			</FreeformParamValue>
 			<FreeformParamValue>	
 				<Id>1631606730222</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.30]]></Code>
+				</Expression>
 			</FreeformParamValue>
 			<FreeformParamValue>	
 				<Id>1631606854947</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[1.0]]></Code>
+				</Expression>
 			</FreeformParamValue>
 			<FreeformParamValue>	
 				<Id>1631610981177</Id>
@@ -2036,19 +2331,46 @@ root.p_whichSusceptability = v_whichSusceptability[getCurrentIteration()-1];]]><
 			<FreeformParamValue>	
 				<Id>1631622774382</Id>
 				<Expression Class="CodeValue">
-					<Code><![CDATA[0.15]]></Code>
+					<Code><![CDATA[0.3]]></Code>
 				</Expression>
 			</FreeformParamValue>
 			<FreeformParamValue>	
 				<Id>1631650857295</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.1]]></Code>
+				</Expression>
 			</FreeformParamValue>
 			<FreeformParamValue>	
 				<Id>1631650861906</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.1]]></Code>
+				</Expression>
 			</FreeformParamValue>
 			<FreeformParamValue>	
 				<Id>1631702298547</Id>
 				<Expression Class="CodeValue">
-					<Code><![CDATA["none"]]></Code>
+					<Code><![CDATA[none]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631785295603</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.10]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631787304702</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[true]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631824890126</Id>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631875387040</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[1.3]]></Code>
 				</Expression>
 			</FreeformParamValue>
 			<RangeVariationParamValue>	
@@ -2061,10 +2383,6 @@ root.p_whichSusceptability = v_whichSusceptability[getCurrentIteration()-1];]]><
 			</RangeVariationParamValue>
 			<RangeVariationParamValue>	
 				<Id>1631532917644</Id>
-				<Type>FIXED</Type>
-			</RangeVariationParamValue>
-			<RangeVariationParamValue>	
-				<Id>1631542638078</Id>
 				<Type>FIXED</Type>
 			</RangeVariationParamValue>
 			<RangeVariationParamValue>	
@@ -2105,6 +2423,22 @@ root.p_whichSusceptability = v_whichSusceptability[getCurrentIteration()-1];]]><
 			</RangeVariationParamValue>
 			<RangeVariationParamValue>	
 				<Id>1631702298547</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631785295603</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631787304702</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631824890126</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631875387040</Id>
 				<Type>FIXED</Type>
 			</RangeVariationParamValue>
 			<ModelTimeProperties>
@@ -2123,7 +2457,305 @@ root.p_whichSusceptability = v_whichSusceptability[getCurrentIteration()-1];]]><
 			<ReplicationsProperties>
 				<UseReplication>true</UseReplication>
 				<FixedReplicationsNumber>true</FixedReplicationsNumber>
-				<ReplicationPerIteration>10</ReplicationPerIteration>
+				<ReplicationPerIteration>20</ReplicationPerIteration>
+				<MinimumReplication>2</MinimumReplication>
+				<MaximumReplication>10</MaximumReplication>
+				<ConfidenceLevel>LEVEL_80</ConfidenceLevel>
+				<ErrorPercent>0.5</ErrorPercent>
+				<ExpressionForConfidenceComputation><![CDATA[0]]></ExpressionForConfidenceComputation>
+			</ReplicationsProperties>
+		</ParamVariationExperiment>
+		<!--   =========  Parameter Variation Experiment   ========  -->
+		<ParamVariationExperiment ActiveObjectClassId="1631520769012">
+			<Id>1632214521383</Id>
+			<Name><![CDATA[EnvironmentTest]]></Name>
+			<ClientAreaTopLeft><X>0</X><Y>0</Y></ClientAreaTopLeft>
+			<Import><![CDATA[import java.io.File;
+import org.apache.commons.io.FileUtils;
+import java.io.IOException;]]></Import>
+			<CommandLineArguments><![CDATA[]]></CommandLineArguments>
+			<InitialSetupCode><![CDATA[v_susceptibilityType = SusceptibilityType.values();
+try { FileUtils.cleanDirectory(new File(v_filePath)); }
+catch(IOException ie) { ie.printStackTrace(); }]]></InitialSetupCode>
+			<MaximumMemory>512</MaximumMemory>
+			<RandomNumberGenerationType>randomSeed</RandomNumberGenerationType>
+			<CustomGeneratorCode>new Random()</CustomGeneratorCode>
+			<BeforeSimulationRunCode><![CDATA[root.v_iteration = getCurrentIteration();
+root.v_replicate = getCurrentReplication();
+root.p_propRandomMating = v_propRandomMating[getCurrentIteration()-1];]]></BeforeSimulationRunCode>
+			<AfterSimulationRunCode><![CDATA[v_replicates++;]]></AfterSimulationRunCode>
+			<SeedValue>1</SeedValue>
+			<SelectionModeForSimultaneousEvents>LIFO</SelectionModeForSimultaneousEvents>
+			<VmArgs><![CDATA[]]></VmArgs>
+			<LoadRootFromSnapshot>false</LoadRootFromSnapshot>
+			<Variables>
+				<Variable Class="PlainVariable">
+					<Id>1632214521385</Id>
+					<Name><![CDATA[v_susceptibilityType]]></Name>
+					<X>80</X><Y>130</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[SusceptibilityType[]]]></Type>        
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1632214521387</Id>
+					<Name><![CDATA[v_replicates]]></Name>
+					<X>80</X><Y>150</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[double]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[0]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1632223678832</Id>
+					<Name><![CDATA[v_filePath]]></Name>
+					<X>80</X><Y>170</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA["output/"]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1632392408323</Id>
+					<Name><![CDATA[v_propRandomMating]]></Name>
+					<X>80</X><Y>110</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[double[]]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[{0, 1}]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+			</Variables>
+
+			<Presentation>
+				<Text>
+					<Id>1632214521389</Id>
+					<Name><![CDATA[text]]></Name>
+					<X>70</X><Y>60</Y>
+					<Label><X>0</X><Y>-10</Y></Label>
+					<PublicFlag>true</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>false</ShowLabel>
+					<DrawMode>SHAPE_DRAW_2D</DrawMode>
+					<EmbeddedIcon>false</EmbeddedIcon>
+					<Z>0</Z>
+					<Rotation>0.0</Rotation>
+					<Color>-14774017</Color>
+					<Text><![CDATA[Environment]]></Text>
+					<Font>
+						<Name>SansSerif</Name>
+						<Size>24</Size>
+						<Style>0</Style>
+					</Font>
+					<Alignment>LEFT</Alignment>
+				</Text>
+			</Presentation>
+
+			<AllowParallelEvaluations>true</AllowParallelEvaluations>
+			<UseFreeformParameters>true</UseFreeformParameters>
+			<NumberOfRuns>2</NumberOfRuns>
+			<FreeformParamValue>	
+				<Id>1631525854973</Id>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631525854976</Id>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631532917644</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[1]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631606505744</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[2000]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631606512403</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.80]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631606514489</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.80]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631606730222</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.80]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631606854947</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[1.0]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631610981177</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.4]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631622774382</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.0]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631650857295</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.0]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631650861906</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.0]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631702298547</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[alternate]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631785295603</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[0.1]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631787304702</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[true]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631824890126</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[p_singleBMI]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1631875387040</Id>
+				<Expression Class="CodeValue">
+					<Code><![CDATA[2.1]]></Code>
+				</Expression>
+			</FreeformParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631525854973</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631525854976</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631532917644</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631606505744</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631606512403</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631606514489</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631606730222</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631606854947</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631610981177</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631622774382</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631650857295</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631650861906</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631702298547</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631785295603</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631787304702</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631824890126</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1631875387040</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<ModelTimeProperties>
+				<StopOption><![CDATA[Stop at specified time]]></StopOption>
+				<InitialDate><![CDATA[1631491200000]]></InitialDate>	
+				<InitialTime><![CDATA[0.0]]></InitialTime>	
+				<FinalDate><![CDATA[1634083200000]]></FinalDate>	
+				<FinalTime><![CDATA[100.0]]></FinalTime>	
+			</ModelTimeProperties>
+			<PresentationProperties>
+				<EnableZoomAndPanning>true</EnableZoomAndPanning>
+				<Title><![CDATA[Susceptability]]></Title>
+				<EnableDeveloperPanel>true</EnableDeveloperPanel>
+				<ShowDeveloperPanelOnStart>true</ShowDeveloperPanelOnStart>
+			</PresentationProperties>
+			<ReplicationsProperties>
+				<UseReplication>true</UseReplication>
+				<FixedReplicationsNumber>true</FixedReplicationsNumber>
+				<ReplicationPerIteration>20</ReplicationPerIteration>
 				<MinimumReplication>2</MinimumReplication>
 				<MaximumReplication>10</MaximumReplication>
 				<ConfidenceLevel>LEVEL_80</ConfidenceLevel>
@@ -2132,11 +2764,25 @@ root.p_whichSusceptability = v_whichSusceptability[getCurrentIteration()-1];]]><
 			</ReplicationsProperties>
 		</ParamVariationExperiment>	
 	</Experiments>
+	<ModelResources>
+		<Resource>
+			<Path><![CDATA[commons-io-2.11.0.jar]]></Path>
+			<ReferencedFromUserCode>false</ReferencedFromUserCode>
+		</Resource>
+	</ModelResources>
     <RequiredLibraryReference>
 		<LibraryName><![CDATA[com.anylogic.libraries.modules.markup_descriptors]]></LibraryName>
 		<VersionMajor>1</VersionMajor>
 		<VersionMinor>0</VersionMinor>
 		<VersionBuild>0</VersionBuild>
     </RequiredLibraryReference>
+	<ClassPathEntry>
+		<ResourceReference>
+			<PackageName><![CDATA[bmi_spouses_gxe]]></PackageName>
+			<ClassName><![CDATA[commons-io-2.11.0.jar]]></ClassName>
+		</ResourceReference>
+		<Imported>true</Imported>
+		<Folder>false</Folder>
+	</ClassPathEntry>
 </Model>
 </AnyLogicWorkspace>

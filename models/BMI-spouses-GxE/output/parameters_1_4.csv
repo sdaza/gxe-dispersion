@@ -1,2 +1,0 @@
-iteration;replicate;agents;mating_random;spouse_threshold;mating_weight;beta_pgs;beta_e;beta_gxe;beta_unobserved;beta_gxeu;sigma_bmi;beta_EU 
-1;4;1000;false;0.2;0.7;0.2;0.2;0.1;0.1;0.1;0.3;0.6

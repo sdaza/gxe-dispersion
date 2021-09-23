@@ -8,6 +8,7 @@ library(brms)
 library(texreg)
 library(foreach)
 library(doParallel)
+library(rethinking)
 source("src/utils.R")
 
 path = "models/BMI-spouses-GxE/output/"
@@ -38,6 +39,7 @@ cor(test$ego_environment, test$alter_environment)
 
 # create basic model
 
+# no random mating
 test = dat[seq == 1 & iteration == 1 & replicate == 1]
 couple_data =
     list(
@@ -72,6 +74,46 @@ fit = ulam(
 )
 
 precis(fit, prob = 0.95)
+
+# random mating
+test = dat[seq == 1 & iteration == 2 & replicate == 1]
+couple_data =
+    list(
+        N = nrow(test),
+        coupleID    = test$couple_id, 
+        bmiA = test$ego_bmi_married, 
+        bmiB = test$alter_bmi_married, 
+        pgsA = test$ego_pgs, 
+        pgsB = test$alter_pgs,
+        pgsA_bmiB = test$ego_pgs * test$alter_bmi_married, 
+        pgsB_bmiA = test$alter_pgs * test$ego_bmi_married
+  )
+
+flist = alist(
+    bmiA ~ normal(muA, sigmaA),
+    bmiB ~ normal(muB, sigmaB),
+
+    muA <- aA + ba_pgsA * pgsA +  ba_bmiB * bmiB + ba_pgsAbmiB * pgsA_bmiB,
+    muB <- aB + bb_pgsB * pgsB + bb_bmiA * bmiA + bb_pgsBbmiA * pgsB_bmiA,
+    c(ba_bmiB, ba_pgsA, ba_pgsAbmiB)  ~ normal(0, 1),
+    c(bb_bmiA, bb_pgsB, bb_pgsBbmiA)  ~ normal(0, 1),
+    c(aA, aB) ~ normal(0, 1),
+    c(sigmaA, sigmaB) ~ exponential(1)
+
+)
+
+fit = ulam(
+    flist, 
+    data = couple_data, 
+    chains = 1, cores = 4, iter = 2000, 
+    cmdstan = TRUE
+)
+
+precis(fit, prob = 0.95)
+
+
+
+# other models
 
 m14.7 <- 
   ulam( 

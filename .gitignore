@@ -3,4 +3,4 @@
 /notebooks
 .ipynb_checkpoints
 .push.settings.jsonc
-*/*/output
+/models/BMI-spouses-GxE/output
