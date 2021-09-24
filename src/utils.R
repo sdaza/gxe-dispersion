@@ -277,3 +277,70 @@ estimateModel = function(f, dat, iter = NULL, clusters = 4) {
     baseline = combine_models(mlist = output, check_data = FALSE)
     return(baseline)
 }
+
+# result class
+multiResultClass = function(models = NULL, rhat = NULL, neff = NULL) {
+  me = list(models = models, rhat = rhat, neff = neff)
+  class(me) = append(class(me), "multiResultClass")
+  return(me)
+}
+
+# spouses model
+runModel = function(flist, replicates = 10, chains = 1, iterations = 2000, 
+    clusters = 2, data) {
+   
+    cl = makeCluster(clusters)
+    registerDoParallel(cl)
+    
+
+    output = foreach(i = 1:replicates,
+        .packages = c("parallel", "doParallel", 
+            "data.table", "rstan", "rethinking")) %dopar% {
+    
+        options(mc.cores = 1)
+        source("src/utils.R")
+        results = multiResultClass()
+
+        temp = copy(data[replicate == i])
+        couple_data =
+            list(
+                N = nrow(temp),
+                coupleID = temp$couple_id, 
+                bmiA = temp$ego_bmi_married, 
+                bmiB = temp$alter_bmi_married, 
+                pgsA = temp$ego_pgs, 
+                pgsB = temp$alter_pgs,
+                pgsA_bmiB = temp$ego_pgs * temp$alter_bmi_married, 
+                pgsB_bmiA = temp$alter_pgs * temp$ego_bmi_married
+        )
+
+        model = ulam(
+            flist, 
+            data = couple_data, chains = 1, cores = 1, 
+            iter = iterations, cmdstan = TRUE
+        )
+        
+        results$models = model@stanfit
+        check = as.matrix(precis(model, depth = 3))
+        results$rhat = sum(na.omit(check[, "Rhat4"]) > 1.01)
+        results$neff = sum(na.omit(check[, "n_eff"]) < 100)
+        rm(check)
+        return(results)
+    }
+    stopCluster(cl)
+
+    models = list()
+    rhat = NULL
+    neff =  NULL
+    for (i in seq_along(output)) {
+        models[[i]] = output[[i]][["models"]]
+        rhat = c(rhat, output[[i]][["rhat"]])
+        neff = c(neff, output[[i]][["neff"]])
+    }
+    return(list(
+        model = rstan::sflist2stanfit(models),
+        rhat = mean(rhat),
+        neff = mean(neff)
+        )
+    )
+}

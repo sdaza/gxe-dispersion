@@ -37,6 +37,9 @@ fit <- brm(f_model + m_model, data = ch8,
 library(rethinking)
 data(KosterLeckie)
 
+dat = data.table(kl_dyads)
+dat
+
 kl_data = 
   list(
     N            = nrow(kl_dyads),

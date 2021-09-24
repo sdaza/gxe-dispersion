@@ -2632,13 +2632,13 @@ root.p_propRandomMating = v_propRandomMating[getCurrentIteration()-1];]]></Befor
 			<FreeformParamValue>	
 				<Id>1631650857295</Id>
 				<Expression Class="CodeValue">
-					<Code><![CDATA[0.0]]></Code>
+					<Code><![CDATA[0.3]]></Code>
 				</Expression>
 			</FreeformParamValue>
 			<FreeformParamValue>	
 				<Id>1631650861906</Id>
 				<Expression Class="CodeValue">
-					<Code><![CDATA[0.0]]></Code>
+					<Code><![CDATA[0.3]]></Code>
 				</Expression>
 			</FreeformParamValue>
 			<FreeformParamValue>	

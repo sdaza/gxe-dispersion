@@ -12,7 +12,7 @@ library(rethinking)
 source("src/utils.R")
 
 path = "models/BMI-spouses-GxE/output/"
-clusters = 5
+clusters = 2
 
 # # remove files
 # files = paste0(path, list.files(path, pattern = "*.csv"))
@@ -28,7 +28,6 @@ params
 
 dat[, seq := 1:.N, .(couple_id, iteration, replicate)]
 table(dat$seq)
-dat
 
 # correlations
 test = dat[seq == 2]
@@ -38,78 +37,83 @@ cor(test$ego_pgs, test$alter_pgs)
 cor(test$ego_environment, test$alter_environment)
 
 # create basic model
+temp = copy(dat[replicate == 1 & iteration == 1])
+couple_data =
+    list(
+        N = nrow(temp),
+        couple_id = temp$couple_id, 
+        bmiA = temp$ego_bmi_married, 
+        bmiB = temp$alter_bmi_married, 
+        pgsA = temp$ego_pgs, 
+        pgsB = temp$alter_pgs,
+        pgsA_bmiB = temp$ego_pgs * temp$alter_bmi_married, 
+        pgsB_bmiA = temp$alter_pgs * temp$ego_bmi_married
+)
+
+srm = alist(
+    bmiA ~ normal(muA, sigmaA),
+    bmiB ~ normal(muB, sigmaB),
+
+    muA <- aA + ba_pgsA * pgsA +  ba_bmiB * bmiB + ba_pgsAbmiB * pgsA_bmiB,
+    muB <- aB + bb_pgsB * pgsB + bb_bmiA * bmiA + bb_pgsBbmiA * pgsB_bmiA,
+
+    c(ba_bmiB, ba_pgsA, ba_pgsAbmiB)  ~ normal(0, 1),
+    c(bb_bmiA, bb_pgsB, bb_pgsBbmiA)  ~ normal(0, 1),
+    c(aA, aB) ~ normal(0, 1),
+    c(sigmaA, sigmaB) ~ exponential(1)
+
+)
+
+
+srmC = alist(
+    bmiA ~ normal(muA, sigmaA),
+    bmiB ~ normal(muB, sigmaB),
+
+    muA <- aA + ba_pgsA * pgsA +  ba_bmiB * bmiB + ba_pgsAbmiB * pgsA_bmiB + d[couple_id, 1],
+    muB <- aB + bb_pgsB * pgsB + bb_bmiA * bmiA + bb_pgsBbmiA * pgsB_bmiA + d[couple_id, 2],
+
+    c(ba_bmiB, ba_pgsA, ba_pgsAbmiB)  ~ normal(0, 1),
+    c(bb_bmiA, bb_pgsB, bb_pgsBbmiA)  ~ normal(0, 1),
+    c(aA, aB) ~ normal(0, 1),
+    c(sigmaA, sigmaB) ~ exponential(1),
+
+    ## dyad effects
+    transpars> matrix[N,2]:d <-
+    compose_noncentered(rep_vector(sigma_d, 2), L_Rho_d, z), 
+    matrix[2,N]:z ~ normal(0, 1),
+    cholesky_factor_corr[2]:L_Rho_d ~ lkj_corr_cholesky(8), 
+    sigma_d ~ exponential(1),
+    
+    ## compute correlation matrix for dyads
+    gq> matrix[2, 2]:Rho_d <<- Chol_to_Corr(L_Rho_d)
+
+)
+
+m0 = ulam(srm, data = couple_data, chains = 1, cores = 1, 
+            iter = 2000, cmdstan = TRUE
+)
+precis(m0)
+
+m1= ulam(srmC, data = couple_data, chains = 1, cores = 1, 
+            iter = 2000, cmdstan = TRUE
+)
+precis(m1)
+precis(m1, depth = 3, pars = c("Rho_d", "sigma_d"))
+
 
 # no random mating
-test = dat[seq == 1 & iteration == 1 & replicate == 1]
-couple_data =
-    list(
-        N = nrow(test),
-        coupleID    = test$couple_id, 
-        bmiA = test$ego_bmi_married, 
-        bmiB = test$alter_bmi_married, 
-        pgsA = test$ego_pgs, 
-        pgsB = test$alter_pgs,
-        pgsA_bmiB = test$ego_pgs * test$alter_bmi_married, 
-        pgsB_bmiA = test$alter_pgs * test$ego_bmi_married
-  )
-
-flist = alist(
-    bmiA ~ normal(muA, sigmaA),
-    bmiB ~ normal(muB, sigmaB),
-
-    muA <- aA + ba_pgsA * pgsA +  ba_bmiB * bmiB + ba_pgsAbmiB * pgsA_bmiB,
-    muB <- aB + bb_pgsB * pgsB + bb_bmiA * bmiA + bb_pgsBbmiA * pgsB_bmiA,
-    c(ba_bmiB, ba_pgsA, ba_pgsAbmiB)  ~ normal(0, 1),
-    c(bb_bmiA, bb_pgsB, bb_pgsBbmiA)  ~ normal(0, 1),
-    c(aA, aB) ~ normal(0, 1),
-    c(sigmaA, sigmaB) ~ exponential(1)
-
-)
-
-fit = ulam(
-    flist, 
-    data = couple_data, 
-    chains = 1, cores = 4, iter = 2000, 
-    cmdstan = TRUE
-)
-
-precis(fit, prob = 0.95)
+no_random_mating = runModel(srm, replicates = 20, data = dat[iteration == 1 & seq == 1])
+precis(no_random_mating$model, prob = 0.95)
+no_random_mating$rhat
+no_random_mating$neff
 
 # random mating
-test = dat[seq == 1 & iteration == 2 & replicate == 1]
-couple_data =
-    list(
-        N = nrow(test),
-        coupleID    = test$couple_id, 
-        bmiA = test$ego_bmi_married, 
-        bmiB = test$alter_bmi_married, 
-        pgsA = test$ego_pgs, 
-        pgsB = test$alter_pgs,
-        pgsA_bmiB = test$ego_pgs * test$alter_bmi_married, 
-        pgsB_bmiA = test$alter_pgs * test$ego_bmi_married
-  )
+random_mating = runModel(srm, replicates = 20, data = dat[iteration == 2 & seq == 1])
+precis(random_mating$model, prob = 0.95)
+random_mating$rhat
+random_mating$neff
 
-flist = alist(
-    bmiA ~ normal(muA, sigmaA),
-    bmiB ~ normal(muB, sigmaB),
 
-    muA <- aA + ba_pgsA * pgsA +  ba_bmiB * bmiB + ba_pgsAbmiB * pgsA_bmiB,
-    muB <- aB + bb_pgsB * pgsB + bb_bmiA * bmiA + bb_pgsBbmiA * pgsB_bmiA,
-    c(ba_bmiB, ba_pgsA, ba_pgsAbmiB)  ~ normal(0, 1),
-    c(bb_bmiA, bb_pgsB, bb_pgsBbmiA)  ~ normal(0, 1),
-    c(aA, aB) ~ normal(0, 1),
-    c(sigmaA, sigmaB) ~ exponential(1)
-
-)
-
-fit = ulam(
-    flist, 
-    data = couple_data, 
-    chains = 1, cores = 4, iter = 2000, 
-    cmdstan = TRUE
-)
-
-precis(fit, prob = 0.95)
 
 
 
