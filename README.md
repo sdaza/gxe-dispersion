@@ -1,1 +1,1 @@
-# gxe-exploration
+# gxe-dispersion

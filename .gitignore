@@ -1,6 +1,5 @@
 .DS_Store
 /data
-/notebooks
 .ipynb_checkpoints
 .push.settings.jsonc
 /models/BMI-spouses-GxE/output/
