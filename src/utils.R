@@ -1,6 +1,7 @@
 # auxiliary functions
 # author: sebastian daza
 
+library(latex2exp)
 
 # simulation functions
 # scaling model 
@@ -116,6 +117,8 @@ plotScalingTest = function(test, file = NULL) {
         savepdf(file)
         print(p)
         dev.off()
+    } else {
+        print(p)
     }
 }
 
@@ -135,10 +138,47 @@ plotDecomp = function(model, file = NULL) {
         savepdf(file)
         print(p)
         dev.off()
+    } else {
+        print(p)
     }
 
 }
 
+
+varyingCoefPlot = function(model, coef, dimension, ci = 0.95, file = NULL, 
+    title = NULL, subtitle = NULL, x = "x", y = "y", caption = NULL, 
+    angle = 0.9, hjust = 0.5, vjust = 0.5,
+    yintercept = 0, return_data = FALSE) {
+
+    scoef = sapply(c(coef, dimension), str2lang)
+    ccoef = gsub("b_", "", coef)
+    sdim = gsub("\\[.+", "", dimension)
+    ff = str2lang(paste0("median = ", coef, " + ", sdim))
+
+    t = tidybayes::spread_draws(model, !!!scoef)
+    s = tidybayes::median_qi(t, !!ff, .width = ci)
+    setnames(s, paste0("median = ", coef, " + ", sdim), "median")
+
+    p = ggplot(s, aes_string(ccoef, "median", group = 1)) + 
+            geom_line(color='#2b8cbe', size = 0.4)  +
+            geom_ribbon(aes(ymin = .lower, ymax = .upper), fill = '#a6bddb', alpha=0.2)  +
+                    labs(title = title, subtitle = subtitle, x = x, y = y, caption = caption) +
+            theme_minimal() +
+            theme(axis.text.x=element_text(angle = angle, hjust = hjust, vjust = vjust)) + 
+            geom_hline(yintercept = yintercept, size=0.5, color='red', alpha=0.8, linetype = 'dotted')
+    
+    if (!is.null(file)) {
+        savepdf(file)
+            print(p)
+         dev.off()
+    } else {
+       print(p)
+    }
+    if (return_data) { return(s) }
+}
+
+
+head(coeff_m1)
 
 plot_multi_histogram <- function(df, feature, label_column) {
     plt <- ggplot(df, aes(x=eval(parse(text=feature)), fill=eval(parse(text = label_column)))) +
@@ -260,6 +300,7 @@ extractBRMS = function(model, r2 = FALSE) {
 }
 
 
+
 # run models for simulations
 estimateModel = function(f, dat, iter = NULL, clusters = 4) {
 
@@ -344,3 +385,34 @@ runModel = function(flist, replicates = 10, chains = 1, iterations = 2000,
         )
     )
 }
+
+
+getMax = function(x) {
+  x = na.omit(x)
+  if (length(x) == 0) {
+    return(NA_real_)
+  } else {
+    return(max(x))
+  }
+}
+
+
+getMin = function(x) {
+  x = na.omit(x)
+  if (length(x) == 0) {
+    return(NA_real_)
+  } else {
+    return(min(x))
+  }
+}
+
+
+getFirstValue = function(x) {
+  return(head(na.omit(x), 1))
+}
+
+
+getLastValue = function(x) {
+  return(tail(na.omit(x), 1))
+}
+

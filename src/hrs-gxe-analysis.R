@@ -9,7 +9,7 @@ library(brms)
 library(tidybayes)
 library(ggplot2)
 library(patchwork)
-library(mice)
+# library(mice)
 source("src/utils.R")
 
 # read data
@@ -17,18 +17,99 @@ dat = data.table(read_stata("data/hrs-obesity-pgs.dta"))
 setnames(dat, names(dat), tolower(names(dat)))
 names(dat)
 
+
 # select only one record per individual
 setorder(dat, hhidpn, wave)
 dat[, seq := 1:.N, hhidpn]
-dat[, n := NULL]
 dat = dat[seq == 1]
+
 table(dat$wave)
+
 dat[, bmi_pgs := bmi_giant15]
-dat[, zyear := scale(birthyr)]
+dat[, zbmipgs := scale(bmi_pgs)]
 dat = dat[birthyr >= 1920 & birthyr <= 1960]
+dat[, zyear := scale(birthyr)]
+
+# self-reported BMI
+dat[, zbmi := scale(srbmi)]
+dat[, zage := scale(age)]
+dat[, male := ifelse(gender == 1, 1, 0)]
+dat[, white := ifelse(race == 1, 1, 0)]
+
+countmis(dat)
+
+# definition of cohorts
+table(dat$birthyr)
+b = seq(1920, 1960, 4)
+dat[, qbyr := cut(birthyr , b,
+    labels = FALSE, include.lowest = TRUE)]    
+t = dat[, .(min(birthyr), max(birthyr)), qbyr]
+setorder(t, qbyr)
+t
+
+# cohort standardization
+dat[, czbmi := scale(srbmi), qbyr]
+dat[, czbmipgs := scale(bmi_pgs), qbyr]
+
+
+t = tidybayes::spread_draws(m1, b_zbmipgs, r_qbyr[cohort,])
+
+# initial model 
+f = bf(zbmi ~ male + white + zage + zbmipgs +
+     pc1_5a + pc1_5b + pc1_5c + pc1_5d + pc1_5e + 
+     pc6_10a + pc6_10b + pc6_10c + pc6_10d + pc6_10e + (1|hhid) + (zbmipgs|qbyr))
+m1 = brm(f, data = dat, cores = 4, backend = "cmdstanr")
+summary(m1)
+
+coeff_m1 = varyingCoefPlot(m1, "b_zbmipgs", "r_qbyr[zbmipgs,]", 
+    file = "testing", return_data = TRUE)
+
+
+f = bf(czbmi ~ male + white + zage + czbmipgs +
+     pc1_5a + pc1_5b + pc1_5c + pc1_5d + pc1_5e + 
+     pc6_10a + pc6_10b + pc6_10c + pc6_10d + pc6_10e + (1|hhid) + (czbmipgs|qbyr))
+m2 = brm(f, data = dat, cores = 4, backend = "cmdstanr")
+summary(m2)
+
+coeff_m2 = varyingCoefPlot(m2, "b_czbmipgs", "r_qbyr[czbmipgs,]", 
+    file = "testing2", return_data = TRUE)
+
+a = data.table(coeff_m1)
+a[, type := "slope"][, cohort := zbmipgs]
+
+dat[, E := zyear]
+dat[, g := zpgsbmi]
+dat[, y := zbmi]
+df = as.data.frame(dat[, .(E, y, g)])
+library(scalingGxE)
+est = mlest(df,hess=TRUE)
+xi.test(est)
+
+# distributional model 
+f = bf(y ~ g*E, 
+     sigma ~ E)
+m1 = brm(f, data = df, backend = "cmdstanr", cores = 4)
+summary(m1)
+tt = scalingTest(m1)
+plotScalingTest(tt)
+plotDecomp(m1)
+
+df$group = rbinom(nrow(df), 5, 0.5)
+table(df$group)
+
+f = bf(y ~ g*E + (g|group))
+
+m1 = brm(f, data = df, backend = "cmdstanr", cores = 4)
+summary(m1)
+
+
+get_variables(m1)
+
+
 dat[, qbyr := cut(birthyr , quantile(birthyr, probs = 0:10/10),
         labels = FALSE, include.lowest = TRUE)]
 dat[, cbirthyr := scale(birthyr, scale = FALSE)]
+
 dim(dat)
 countmis(dat)
 
@@ -56,14 +137,12 @@ savepdf("testing")
 ggplot(dat, aes(age, resd)) + geom_point()
 dev.off()
 
+names(dat)
 # dat = dat[!is.na(pmbmi)]
 # dat[, zpmbmi := scale(pmbmi)]
-dat[, zage := scale(age)]
 
-# all data
-# f = bf(srbmi ~ time + zage + race + gender + bmi_pgs + (time|hhidpn) + (1|hhid), sigma ~ zyear)
-# m1 = brm(f, data = dat, cores = 4, backend = "cmdstanr")
-# summary(m1)
+
+
 
 test = dcast(dat, hhidpn ~ age, value.var = "birthyr")
 test[, apply(.SD, 2, function(x) sum(!is.na(x)))]
@@ -109,6 +188,7 @@ summary(m2)
 
 tabs = list()
 tabs[[1]] = extractBRMS(m2)
+
 
 # standardized
 f = bf(zpmbmi ~ gender + race + zage + bmi_pgs * zyear +
@@ -281,8 +361,7 @@ ss = s[, .(m = median(slope),
     h = quantile(slope, probs = 0.975)), 
     byear]
 
-ss
-trehsavepdf("output/plots/hrs-slope")
+savepdf("output/plots/hrs-slope")
 ggplot(ss, aes(byear, m)) + geom_line(color='#2b8cbe', size = 0.4) +
     geom_ribbon(aes(ymin = l, ymax = h), fill = '#a6bddb', alpha=0.2) + 
     theme_minimal() +     
