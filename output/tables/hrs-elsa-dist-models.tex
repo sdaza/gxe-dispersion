@@ -1,0 +1,44 @@
+
+\begin{table}
+\caption{BMI and birth year, HRS-ELSA}
+\begin{center}
+\scalebox{0.7}{
+\begin{threeparttable}
+\begin{tabular}{l D{.}{.}{5.9} D{.}{.}{4.9}}
+\hline
+ & \multicolumn{1}{c}{HRS} & \multicolumn{1}{c}{ELSA} \\
+\hline
+Fixed effects                                          &                &                \\
+                                                       &                &                \\
+\quad Intercept                                        & 0.24^{*}       & 0.02           \\
+                                                       & [ 0.21;  0.28] & [-0.02;  0.05] \\
+\quad Birth year (z-score)                             & 0.14^{*}       & 0.10^{*}       \\
+                                                       & [ 0.01;  0.27] & [ 0.01;  0.19] \\
+\quad BMI polygenic risk score                         & 0.22^{*}       & 0.25^{*}       \\
+                                                       & [ 0.21;  0.24] & [ 0.23;  0.28] \\
+\quad BMI polygenic risk score x Birth year (z-scores) & 0.04^{*}       & 0.03^{*}       \\
+                                                       & [ 0.03;  0.05] & [ 0.01;  0.06] \\
+Residuals                                              &                &                \\
+                                                       &                &                \\
+\quad sIntercept                                       & -0.18^{*}      & -0.10^{*}      \\
+                                                       & [-0.20; -0.16] & [-0.13; -0.07] \\
+\quad sBirth year (z-score)                            & 0.18^{*}       & 0.08^{*}       \\
+                                                       & [ 0.16;  0.19] & [ 0.05;  0.10] \\
+Random effects                                         &                &                \\
+                                                       &                &                \\
+\quad $\sigma$ Intercept Households                    & 0.38^{*}       & 0.26^{*}       \\
+                                                       & [ 0.34;  0.42] & [ 0.18;  0.32] \\
+\hline
+Num. obs.                                              & 14238          & 6769           \\
+\hline
+\end{tabular}
+\begin{tablenotes}[flushleft]
+\scriptsize{\item  $^*$ Null hypothesis value outside the confidence interval. HH = household. 
+        \item All the models adjust for gender, race, age first interview, population stratification (10 PCs), 
+        and household random effects}
+\end{tablenotes}
+\end{threeparttable}
+}
+\label{tab:dist-model}
+\end{center}
+\end{table}

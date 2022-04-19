@@ -1,9 +1,21 @@
 # auxiliary functions
 # author: sebastian daza
 
+library(haven)
 library(latex2exp)
+library(data.table)
+library(brms)
+library(tidybayes)
+library(texreg)
+library(ggplot2)
+library(scalingGxE)
+library(patchwork)
+library(foreach)
+library(doParallel)
+
 
 # simulation functions
+
 # scaling model 
 simScaling = function(E, a0 = 0, a1 = 0.5, b0 = 0.8, b1 = 0.2, h2 = 0.4) {
     N = length(E)
@@ -12,83 +24,45 @@ simScaling = function(E, a0 = 0, a1 = 0.5, b0 = 0.8, b1 = 0.2, h2 = 0.4) {
     e = sqrt(1-h^2)
     sigma = exp(b0*e + b1*e*E) 
     y = rnorm(N, a0 + a1*E + b0*h*G + b1*h*E*G, sigma)
-    df = data.frame(E = E, y = y, g = G, ys = scale(y))
+    df = data.table(E = E, y = y, g = G)
+    df[, qE := cut(E, quantile(E, probs = 0:10/10),
+        labels = FALSE, include.lowest = TRUE)]
+    df[, zy := scale(y)][, zg := scale(g)]
+    df[, gzy := scale(y), qE]
+    df[, gzg := scale(g), qE]
 }
 
-# interaction model
+
+ # interaction, heteroscedasticity
+simHC = function(E) {
+    N = length(E)
+    G = rnorm(N, 0, 1)
+    sigma = exp(0.2 + 0.5 * E) 
+    y = rnorm(N, E * 0.4 +  0.5 * G +  0.2 * E * G, sigma)
+    df = data.table(E = E, y = y, g = G)
+    df[, qE := cut(E, quantile(E, probs = 0:10/10),
+        labels = FALSE, include.lowest = TRUE)]
+    df[, zy := scale(y)][, zg := scale(g)]
+    df[, gzy := scale(y), qE]
+    df[, gzg := scale(g), qE]
+}
+
+
+# interaction model, heteroscedasticity
 simInteraction = function(E, a0 = 0.0, a1 = 0.8, a2 = 0.5, a3 = 0.3, bs0 = 0.4, bs1 = 0.24) {
     N = length(E)
     G = rnorm(N,0,1)
     sigma = exp(bs0 + bs1 * E) 
-    y = rnorm(N, a0 + a1*E + a2*G + a3*G*E, sigma)
-    df = data.frame(E = E, y = y, g = G, ys = scale(y))
+    y = rnorm(N, a0 + a1 * E + a2 * G + a3 * G * E, sigma)
+    df = data.table(E = E, y = y, g = G)
+    df[, qE := cut(E, quantile(E, probs = 0:10/10),
+        labels = FALSE, include.lowest = TRUE)]
+    df[, zy := scale(y)][, zg := scale(g)]
+    df[, gzy := scale(y), qE]
+    df[, gzg := scale(g), qE]
 }
 
-# interaction + scaling model
-simScalingInteraction = function(E, a0 = 0.0,  a1 = 0.5, a2 = 0.10, b0 = 0.8, b1 = 0.2, h2 = 0.5) {
-    N = length(E)
-    G = rnorm(N,0,1)
-    h = sqrt(h2)
-    e = sqrt(1-h^2)
-    sigma = exp(b0*e + b1*e*E) 
-    y = rnorm(N, a0 + a1*E + a2*G*E + b0*h*G + b1*h*E*G, sigma)
-    df = data.frame(E = E, y = y, g = G, ys = scale(y))
-}
-
-# domingue's original function
-simDom = function(E,b0 = .8, b1 = .2, b2 = 0, b3 = .05, h = sqrt(.6), a =.5, sigma = 1, scaling = TRUE) {
-    N = length(E)
-    G = rnorm(N,0,1)
-    eps = rnorm(N,0,sigma)
-    if (scaling){
-        e = sqrt(1-h^2)
-        ystar = h*G+e*eps
-        y = a*E+(b0 + b1*E)*ystar
-    } else {
-        y = b1*G+b2*E+b3*G*E+eps
-    }
-    df = data.frame(E=E,y=y,g=G, ys = scale(y))
-}
-
-# sim alternative
-simAlternative = function(E, a0 = 0.0, a1 = 0.8, bs0 = 0.50, bs1 = 0.35, 
-    h2 = 0.3, e2 = 0.2, he2 = 0.15) {
-    
-    n = length(E)
-    G = rnorm(n)
-
-    hd2 = 1 - (h2 + e2 + he2)
-
-    h = sqrt(h2)
-    e = sqrt(e2)
-    he = sqrt(he2)
-    hd = sqrt(hd2)
-    
-    ys = h * G + e * E + he * G * E
-
-    sigma = exp(bs0 * hd  + bs1 * hd * E)
-    y = rnorm(n, a0 + a1 * ys, sigma)
-    #y = a + (b0 + b1 * E) * ys + eps
-    df = data.frame(E = E, y = y, g = G, ys = scale(y))
-}
-
-
-# decomposition function scaliing vs  interaction model 
-decompR = function(model ,p0 = "g", p1 = "g:e", l0 = "sigma_intercept",
-      l1 = "sigma_e") {
-
-    par = list("p0" = p0, "p1" =  p1, "l0" = l0, "l1" =  l1)
-    par = lapply(par, function(x) tolower(paste0("b_", x)))
-    s = posterior_samples(model)
-    names(s) = tolower(names(s))
-    sl0 = s[[par$l0]]
-    sl1 = s[[par$l1]]
-    sp0 = s[[par$p0]]
-    sp1 = s[[par$p1]]
-    v =  ( (sl0*sp1 - sl1*sp0)/sl0 ) / sp1
-    v
-}
-
+# test functions
 
 # scaling test
 scalingTest = function(model, 
@@ -97,9 +71,11 @@ scalingTest = function(model,
     return(h)
 }
 
+
 scalingTestC = function(p0, p1, l0, l1) {
     return(p0 * l1 - p1 * l0)
 }
+
 
 plotScalingTest = function(test, file = NULL) {
     v = test$samples
@@ -122,7 +98,24 @@ plotScalingTest = function(test, file = NULL) {
     }
 }
 
+# decomposition function scaling vs interaction model 
+decompR = function(model ,p0 = "g", p1 = "g:e", l0 = "sigma_intercept",
+      l1 = "sigma_e") {
 
+    par = list("p0" = p0, "p1" =  p1, "l0" = l0, "l1" =  l1)
+    par = lapply(par, function(x) tolower(paste0("b_", x)))
+    s = posterior_samples(model)
+    names(s) = tolower(names(s))
+    sl0 = s[[par$l0]]
+    sl1 = s[[par$l1]]
+    sp0 = s[[par$p0]]
+    sp1 = s[[par$p1]]
+    v =  ( (sl0*sp1 - sl1*sp0)/sl0 ) / sp1
+    v
+}
+
+
+# plot decomposition function
 plotDecomp = function(model, file = NULL) {
     x = decompR(model)
     m = mean(x)
@@ -145,21 +138,123 @@ plotDecomp = function(model, file = NULL) {
 }
 
 
-varyingCoefPlot = function(model, coef, dimension, ci = 0.95, file = NULL, 
+slopeCorPlot = function(data, group, file = NULL, ncol = 3, w = 25, h = 20) {
+    plots = list()
+    v = sort(unique(data[[group]]))
+    print(v)
+    for (i in v) {
+    slope = specify_decimal(coef(lm(y ~ g, data = data[get(group) == i]))[2], 2)
+    corr = specify_decimal(cor(data[get(group) == i, .(y, g)])[1, 2], 2)
+    plots[[i]] = ggplot(data[get(group) == i], aes(g, y)) + geom_point(size = 0.5, 
+        alpha = 0.1, color = "#2b8cbe") +
+        geom_smooth(method = "lm", color = "#e34a33", alpha = 0.2, size = 0.3) + 
+        labs(title = paste0("E", i), 
+            subtitle = TeX(paste0("$\\rho$=", corr, ", $\\beta$=", slope))) +
+        theme_minimal()
+    }
+    if (!is.null(file)) {
+        savepdf(file, w, h)
+        print(wrap_plots(plots, ncol = 3))
+        dev.off()
+    }
+    else { return(plots) }
+}
+
+
+# multiclass function to save ouptut
+multiResultClass = function(distributional = NULL, slope = NULL, correlation = NULL) {
+    me = list(distributional = distributional, slope = slope, correlation = correlation)
+    class(me) = append(class(me), "multiResultClass")
+    return(me)
+}
+
+
+testConvergence = function(models) {
+    rhats = NULL
+    for (i in seq_along(models)) { 
+        rhats  = c(rhats, as.vector(unlist(models[[i]]$rhats)))
+    }
+    print(sum(rhats > 1.05 | rhats < 0.95))
+}
+
+
+# custom function to run models using clusters
+runModels = function(data, clusters = 10) {
+    
+    cl = makeCluster(clusters)
+    registerDoParallel(cl)
+    n = length(data)
+    output = foreach(i = 1:n, 
+        .packages = c("brms", "data.table")) %dopar% {
+
+        source("src/utils.R")
+        results = multiResultClass()  
+        temp = data[[i]]
+        f = bf(y ~ g + E + g * E, sigma ~ 1 + E)
+        a = brm(f, 
+            data = temp, 
+            family = brmsfamily("gaussian", link_sigma = "log"), 
+            chains = 1, backend = "cmdstanr", cores = 1,
+            control = list(adapt_delta = 0.99))
+        f = bf(zy ~ zg + (zg|qE))
+        b = brm(f, 
+            data = temp, 
+            chains = 1, backend = "cmdstanr", cores = 1, 
+            control = list(adapt_delta = 0.99))
+        f = bf(gzy ~ gzg + (gzg|qE))
+        c = brm(f, 
+            data = temp, 
+            chains = 1, backend = "cmdstanr", cores = 1, 
+            control = list(adapt_delta = 0.99))
+
+        results$distributional = a
+        results$slope = b
+        results$correlation = c
+        return(results)
+    }
+    stopCluster(cl)
+
+    a = combine_models(mlist = extractModelList(output, "distributional"), check_data = FALSE)
+    b = combine_models(mlist = extractModelList(output, "slope"), check_data = FALSE)
+    c = combine_models(mlist = extractModelList(output, "correlation"), check_data = FALSE)
+    rm(output)
+    return(list("distributional" = a, "slope" = b, "correlation" = c))
+}
+
+
+# extract objects from list
+extractModelList = function(list, name, threshold = 1.1) {
+    output = list()
+    n = length(list)
+    for (i in 1:n) {
+        m = list[[i]][[name]]
+        if (sum(na.omit(rhat(m)) > threshold )) {
+            print(paste0("Warning: rhat > ", threshold))
+        }   
+        output[[i]] = m
+    }
+    return(output)
+    
+}
+
+
+# plot varying coefficients
+brmsVaryingCoefPlot = function(model, coef, dimension, ci = 0.95, file = NULL, 
     title = NULL, subtitle = NULL, x = "x", y = "y", caption = NULL, 
     angle = 0.9, hjust = 0.5, vjust = 0.5,
     yintercept = 0, return_data = FALSE) {
 
+
     scoef = sapply(c(coef, dimension), str2lang)
     ccoef = gsub("b_", "", coef)
     sdim = gsub("\\[.+", "", dimension)
+    cgroup = gsub("(.+\\[)([a-zA-Z0-9]+)(,.+)", "\\2", dimension)
     ff = str2lang(paste0("median = ", coef, " + ", sdim))
-
     t = tidybayes::spread_draws(model, !!!scoef)
     s = tidybayes::median_qi(t, !!ff, .width = ci)
     setnames(s, paste0("median = ", coef, " + ", sdim), "median")
 
-    p = ggplot(s, aes_string(ccoef, "median", group = 1)) + 
+    p = ggplot(s, aes_string(cgroup, "median", group = 1)) + 
             geom_line(color='#2b8cbe', size = 0.4)  +
             geom_ribbon(aes(ymin = .lower, ymax = .upper), fill = '#a6bddb', alpha=0.2)  +
                     labs(title = title, subtitle = subtitle, x = x, y = y, caption = caption) +
@@ -177,8 +272,6 @@ varyingCoefPlot = function(model, coef, dimension, ci = 0.95, file = NULL,
     if (return_data) { return(s) }
 }
 
-
-head(coeff_m1)
 
 plot_multi_histogram <- function(df, feature, label_column) {
     plt <- ggplot(df, aes(x=eval(parse(text=feature)), fill=eval(parse(text = label_column)))) +
@@ -225,32 +318,7 @@ countmis = function(dat, vars = NULL, pct = TRUE, exclude.complete = TRUE) {
 }
 
 
-bayes_r2 = function(y, ypred) {
-    e = -1 * sweep(ypred, 2, y)
-    var_ypred = matrixStats::rowVars(ypred)
-    var_e = matrixStats::rowVars(e)
-    r2 = as.matrix(var_ypred / (var_ypred + var_e))
-    return(c("m" = median(r2), "l" = as.numeric(quantile(r2, probs = 0.025)), 
-        "h" = as.numeric(quantile(r2, probs = 0.975))))
-}
-
-bayes_r2_group = function(y, ypred, group) {
-    ugroup = sort(unique(group))
-    e = -1 * sweep(ypred, 2, y)
-
-    v = NULL
-    for (i in ugroup) {
-        f = which(group %in% i)
-        var_e = matrixStats::rowVars(e[, f])
-        var_ypred = matrixStats::rowVars(ypred[, f])
-        r2 = as.matrix(var_ypred / (var_ypred + var_e))
-        v = rbind(v, c("group" = i, "m" = median(r2), "l" = as.numeric(quantile(r2, probs = 0.025)), 
-            "h" = as.numeric(quantile(r2, probs = 0.975))))
-    }
-    return(data.table(v))
-}
-
-
+# texreg function
 extractBRMS = function(model, r2 = FALSE) {
     ff = summary(model)$fixed
     rf = try(summary(model)$random)
@@ -300,92 +368,7 @@ extractBRMS = function(model, r2 = FALSE) {
 }
 
 
-
-# run models for simulations
-estimateModel = function(f, dat, iter = NULL, clusters = 4) {
-
-    cl = makeCluster(clusters)
-    registerDoParallel(cl)
-
-    output = foreach(i = 1:max(params$replicate),
-        .packages = c("brms", "cmdstanr", "doParallel", 
-            "data.table")) %dopar% {
-    
-    temp = copy(dat[iteration == iter & replicate == i])
-    brm(f, data = temp, iter = 2000, cores = 1, chains = 1, backend = "cmdstan")
-    }
-    stopCluster(cl)
-    baseline = combine_models(mlist = output, check_data = FALSE)
-    return(baseline)
-}
-
-# result class
-multiResultClass = function(models = NULL, rhat = NULL, neff = NULL) {
-  me = list(models = models, rhat = rhat, neff = neff)
-  class(me) = append(class(me), "multiResultClass")
-  return(me)
-}
-
-# spouses model
-runModel = function(flist, replicates = 10, chains = 1, iterations = 2000, 
-    clusters = 2, data) {
-   
-    cl = makeCluster(clusters)
-    registerDoParallel(cl)
-    
-
-    output = foreach(i = 1:replicates,
-        .packages = c("parallel", "doParallel", 
-            "data.table", "rstan", "rethinking")) %dopar% {
-    
-        options(mc.cores = 1)
-        source("src/utils.R")
-        results = multiResultClass()
-
-        temp = copy(data[replicate == i])
-        couple_data =
-            list(
-                N = nrow(temp),
-                coupleID = temp$couple_id, 
-                bmiA = temp$ego_bmi_married, 
-                bmiB = temp$alter_bmi_married, 
-                pgsA = temp$ego_pgs, 
-                pgsB = temp$alter_pgs,
-                pgsA_bmiB = temp$ego_pgs * temp$alter_bmi_married, 
-                pgsB_bmiA = temp$alter_pgs * temp$ego_bmi_married
-        )
-
-        model = ulam(
-            flist, 
-            data = couple_data, chains = 1, cores = 1, 
-            iter = iterations, cmdstan = TRUE
-        )
-        
-        results$models = model@stanfit
-        check = as.matrix(precis(model, depth = 3))
-        results$rhat = sum(na.omit(check[, "Rhat4"]) > 1.01)
-        results$neff = sum(na.omit(check[, "n_eff"]) < 100)
-        rm(check)
-        return(results)
-    }
-    stopCluster(cl)
-
-    models = list()
-    rhat = NULL
-    neff =  NULL
-    for (i in seq_along(output)) {
-        models[[i]] = output[[i]][["models"]]
-        rhat = c(rhat, output[[i]][["rhat"]])
-        neff = c(neff, output[[i]][["neff"]])
-    }
-    return(list(
-        model = rstan::sflist2stanfit(models),
-        rhat = mean(rhat),
-        neff = mean(neff)
-        )
-    )
-}
-
+# other functions
 
 getMax = function(x) {
   x = na.omit(x)
@@ -416,3 +399,34 @@ getLastValue = function(x) {
   return(tail(na.omit(x), 1))
 }
 
+
+# interaction + scaling model
+simScalingInteraction = function(E, a0 = 0.0,  a1 = 0.5, a2 = 0.10, b0 = 0.8, b1 = 0.2, h2 = 0.5) {
+    N = length(E)
+    G = rnorm(N,0,1)
+    h = sqrt(h2)
+    e = sqrt(1-h^2)
+    sigma = exp(b0*e + b1*e*E) 
+    y = rnorm(N, a0 + a1*E + a2*G*E + b0*h*G + b1*h*E*G, sigma)
+    df[, qE := cut(E, quantile(E, probs = 0:10/10),
+        labels = FALSE, include.lowest = TRUE)]
+    df[, zy := scale(y)][, zg := scale(g)]
+    df[, gzy := scale(y), qE]
+    df[, gzg := scale(g), qE]
+}
+
+
+# domingue's original function
+simDom = function(E,b0 = .8, b1 = .2, b2 = 0, b3 = .05, h = sqrt(.6), a =.5, sigma = 1, scaling = TRUE) {
+    N = length(E)
+    G = rnorm(N,0,1)
+    eps = rnorm(N,0,sigma)
+    if (scaling){
+        e = sqrt(1-h^2)
+        ystar = h*G+e*eps
+        y = a*E+(b0 + b1*E)*ystar
+    } else {
+        y = b1*G+b2*E+b3*G*E+eps
+    }
+    df = data.frame(E=E,y=y,g=G, ys = scale(y))
+}
