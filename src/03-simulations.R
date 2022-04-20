@@ -18,7 +18,7 @@ n = 10000
 datasets = list(
     dts = replicate(nreplicates, simScaling(rnorm(n, 0, 1)), simplify = FALSE),
     dti = replicate(nreplicates, simInteraction(rnorm(n, 0, 1)), simplify = FALSE), 
-    dth = replicate(nreplicates, simHC(rnorm(n, 0, 1)), simplify = FALSE),
+    dth = replicate(nreplicates, simHC(rnorm(n, 0, 1)), simplify = FALSE)
 )
 
 # explore data
@@ -135,9 +135,9 @@ cmap = list(
  
 suppressWarnings(
     texreg(models, 
-        caption = "Distributional models",, 
+        caption = "Distributional models",
         custom.coef.map = cmap,
-        label = "tab:dist_models",
+        label = "tab:sim-dist-models",
         custom.model.names = cnames,
         caption.above = TRUE,
         booktabs = TRUE,
@@ -148,9 +148,9 @@ suppressWarnings(
         include.nobs = TRUE,
         include.loo.ic = FALSE,
         include.waic = FALSE,
-        file = "output/tables/sim-dist-model.tex")
+        file = "output/tables/sim-dist-models.tex")
 )
-file.copy("output/tables/sim-dist-model.tex", "manuscript/tables", 
+file.copy("output/tables/sim-dist-models.tex", "manuscript/tables", 
     recursive = TRUE)
 
 # scaling test and plots
@@ -189,4 +189,4 @@ file.copy("output/plots/hc-scatter-cor-slope.pdf",
     recursive = TRUE) 
 
 # save simulated data
-saveRDS(datasets, "output/simulated-data.rds", )
+saveRDS(datasets, "output/data/simulated-data.rds", )

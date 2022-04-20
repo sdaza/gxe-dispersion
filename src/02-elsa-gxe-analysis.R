@@ -184,7 +184,7 @@ texreg::texreg(tabs,
     caption = caption, 
     custom.model.names = cnames, 
     custom.coef.map = custom_coeff_map,
-    label = "tab:dist-model",
+    label = "tab:hrs-elsa-dist-models",
     groups = groups,
     custom.note = "\\item  $^*$ Null hypothesis value outside the confidence interval. HH = household. 
         \\item All the models adjust for gender, race, age first interview, population stratification (10 PCs), 

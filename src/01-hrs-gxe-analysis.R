@@ -52,6 +52,7 @@ cc = complete.cases(dat[, ..vars])
 table(cc)
 dat = dat[cc]
 table(dat$qbyr)
+nrow(dat)
 
 # slope vs correlation plots using Bayesian models
 f = bf(zbmi ~ male + white + zage + zbmipgs +
@@ -156,19 +157,13 @@ xi.test(est)
 # distributional model tables (standardized)
 f = bf(zbmi ~ male + white + zage + zbmipgs + zbmipgs * zyear + 
      pc1_5a + pc1_5b + pc1_5c + pc1_5d + pc1_5e + 
-     pc6_10a + pc6_10b + pc6_10c + pc6_10d + pc6_10e + (1|hhid))
+     pc6_10a + pc6_10b + pc6_10c + pc6_10d + pc6_10e + (1|hhid), 
+     sigma ~ zyear)
 md1 = brm(f, data = dat, cores = 4, backend = "cmdstanr", 
     # threads = threading(8), 
     control = list(adapt_delta = 0.99))
 
-f = bf(zbmi ~ male + white + zage + zbmipgs + zbmipgs * zyear + 
-     pc1_5a + pc1_5b + pc1_5c + pc1_5d + pc1_5e + 
-     pc6_10a + pc6_10b + pc6_10c + pc6_10d + pc6_10e, 
-     sigma ~ zyear  + zbmipgs + male + white)
-md2 = brm(f, data = dat, cores = 4, backend = "cmdstanr", 
-    # threads = threading(8), 
-    control = list(adapt_delta = 0.99))
-
-tabs = readRDS("output/data/tabs.rds")
+tabs = list()
+# tabs = readRDS("output/data/tabs.rds")
 tabs[[1]] = extractBRMS(md1)
 saveRDS(tabs, "output/data/tabs.rds")
